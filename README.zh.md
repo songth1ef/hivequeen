@@ -60,6 +60,26 @@ bash ~/hivequeen/scripts/install-codex.sh
 .\hivequeen\scripts\install-codex.ps1
 ```
 
+**OpenClaw（macOS / Linux）**
+```bash
+bash ~/hivequeen/scripts/install-openclaw.sh
+```
+
+**OpenClaw（Windows）**
+```powershell
+.\hivequeen\scripts\install-openclaw.ps1
+```
+
+**Hermes Agent（macOS / Linux）**
+```bash
+bash ~/hivequeen/scripts/install-hermes.sh
+```
+
+**Hermes Agent（Windows）**
+```powershell
+.\hivequeen\scripts\install-hermes.ps1
+```
+
 每台机器都执行一次。相同的 fork，不同的 agent ID，共享同一个大脑。
 
 ---
@@ -94,8 +114,9 @@ bash ~/hivequeen/scripts/compile.sh
 
 ```
 hivequeen/
-├── AGENTS.md                   通用 bootstrap（所有工具读取）
-├── CLAUDE.md                   软链接 → AGENTS.md
+├── AGENTS.md                   通用 bootstrap（Codex、OpenClaw 等）
+├── CLAUDE.md                   Claude Code 专用 bootstrap
+├── SOUL.md                     人格文件（OpenClaw、Hermes 读取）
 ├── queen/
 │   ├── agent-rules.md          行为规则 — agent 只读
 │   └── strategy.md             决策方向 — agent 只读
@@ -109,6 +130,8 @@ hivequeen/
 └── scripts/
     ├── install-claude.sh / .ps1
     ├── install-codex.sh  / .ps1
+    ├── install-openclaw.sh / .ps1
+    ├── install-hermes.sh / .ps1
     └── compile.sh
 ```
 
@@ -163,11 +186,13 @@ agent 先读索引，按需跟进相关 topic 文件。
 
 ## 支持的工具
 
-| 工具 | 入口文件 | 状态 |
+| 工具 | 入口文件 | 安装方式 |
 |---|---|---|
-| Claude Code | `CLAUDE.md` | ✅ |
-| Codex | `AGENTS.md` | ✅ |
-| Gemini CLI | `GEMINI.md` | 添加软链接 |
+| Claude Code | `~/.claude/CLAUDE.md` | `bash scripts/install-claude.sh` |
+| Codex | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
+| OpenClaw | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
+| Hermes Agent | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
+| Gemini CLI | `GEMINI.md` | `ln -s AGENTS.md GEMINI.md` |
 | Cursor | `.cursor/rules/` | 添加软链接 |
 | Windsurf | `.windsurf/rules/` | 添加软链接 |
 | Cline | `.clinerules/` | 添加软链接 |

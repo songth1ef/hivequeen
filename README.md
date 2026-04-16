@@ -60,6 +60,26 @@ bash ~/hivequeen/scripts/install-codex.sh
 .\hivequeen\scripts\install-codex.ps1
 ```
 
+**OpenClaw (macOS / Linux)**
+```bash
+bash ~/hivequeen/scripts/install-openclaw.sh
+```
+
+**OpenClaw (Windows)**
+```powershell
+.\hivequeen\scripts\install-openclaw.ps1
+```
+
+**Hermes Agent (macOS / Linux)**
+```bash
+bash ~/hivequeen/scripts/install-hermes.sh
+```
+
+**Hermes Agent (Windows)**
+```powershell
+.\hivequeen\scripts\install-hermes.ps1
+```
+
 Repeat on every machine. Same fork, different agent IDs, one shared brain.
 
 ---
@@ -94,8 +114,9 @@ All agents will pick it up on their next `git pull`.
 
 ```
 hivequeen/
-├── AGENTS.md                   universal bootstrap (all tools read this)
-├── CLAUDE.md                   symlink → AGENTS.md
+├── AGENTS.md                   universal bootstrap (Codex, OpenClaw, others)
+├── CLAUDE.md                   bootstrap for Claude Code
+├── SOUL.md                     personality file (OpenClaw, Hermes)
 ├── queen/
 │   ├── agent-rules.md          behavior rules — read-only for agents
 │   └── strategy.md             decision direction — read-only for agents
@@ -109,6 +130,8 @@ hivequeen/
 └── scripts/
     ├── install-claude.sh / .ps1
     ├── install-codex.sh  / .ps1
+    ├── install-openclaw.sh / .ps1
+    ├── install-hermes.sh / .ps1
     └── compile.sh
 ```
 
