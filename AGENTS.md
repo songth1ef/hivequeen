@@ -30,7 +30,8 @@ Then load context in this order:
 ## 2. Write Protocol
 
 - **ONLY** write to `agents/<agent-id>/`
-- **NEVER** write to `queen/` or `shared/` — those are read-only for agents
+- **NEVER** write to `queen/` — read-only, human-managed only
+- `shared/memory.md` is read-only for agents **except during distillation** (see Section 7)
 - When saving memory, prefer creating new files over editing existing ones
 
 ---
@@ -104,6 +105,40 @@ need to read first — they follow links only when the topic is relevant.
 
 **Agent rule**: before writing new memory, check if the target file is near its
 limit. If yes, split first, then write to the appropriate topic file.
+
+---
+
+## 7. Memory Distillation Protocol
+
+Distillation merges all agents' private memory into `shared/memory.md`.
+Only agents explicitly triggered for distillation may write to `shared/`.
+
+### When to trigger
+
+- Manually: when the human asks an agent to distill
+- Automatically: at session end, if the agent detects new memory worth sharing
+
+### What goes into shared
+
+| Include | Exclude |
+|---|---|
+| Cross-agent stable facts (user identity, stack, preferences) | Temporary task details |
+| Validated collaboration patterns | One-off debugging notes |
+| Decisions with lasting impact | Agent-specific context |
+
+### How to distill
+
+1. Read all `agents/*/memory.md`
+2. Read current `shared/memory.md`
+3. Merge: remove duplicates, unify consistent facts, keep divergent observations as-is
+4. Write result to `shared/memory.md` — **never delete**, only merge and add
+5. Commit with message: `memory: distill shared`
+
+### Rules
+
+- `shared` is the union of agent knowledge, not an intersection — don't drop unique observations
+- Each agent's private memory is preserved unchanged — distillation is non-destructive
+- After distillation, agents only need to read `shared/memory.md` + their own `agents/<id>/memory.md`
 
 ---
 
