@@ -1,5 +1,7 @@
 # hivequeen
 
+[中文](README.zh.md) | English
+
 Fork it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git. // fork 即继承，clone 即连接，所有 agent 共用同一个大脑。git 原生记忆协议，无需插件，无需服务器。
 
 ---

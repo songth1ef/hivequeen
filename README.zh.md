@@ -1,0 +1,186 @@
+# hivequeen
+
+English | [中文](README.zh.md)
+
+fork 即继承，clone 即连接，所有 agent 共用同一个大脑。git 原生记忆协议，无需插件，无需服务器。
+
+---
+
+## 工作原理
+
+```
+hivequeen 仓库（你的 fork）
+├── queen/          ← 只读规则与策略（由你维护）
+├── agents/         ← 每个 agent 只写自己的目录
+├── shared/         ← 所有 agent 的编译记忆（只读）
+└── projects/       ← 项目上下文文件
+```
+
+每台 clone 了你 fork 的机器都共享同一个大脑。
+每个 agent 实例只写自己的 `agents/<agent-id>/` 目录——永远不会产生冲突。
+
+```
+session 开始  →  git pull  →  加载上下文
+session 结束  →  git commit agents/<id>/  →  git push
+```
+
+---
+
+## 快速开始
+
+### 1. Fork 本仓库
+
+点击 GitHub 上的 **Fork**，这就成了你的私有母体。
+
+### 2. Clone 到每台机器
+
+```bash
+git clone git@github.com:<你的用户名>/hivequeen.git ~/hivequeen
+```
+
+### 3. 安装到你的 agent 工具
+
+**Claude Code（macOS / Linux）**
+```bash
+bash ~/hivequeen/scripts/install-claude.sh
+```
+
+**Claude Code（Windows）**
+```powershell
+.\hivequeen\scripts\install-claude.ps1
+```
+
+**Codex（macOS / Linux）**
+```bash
+bash ~/hivequeen/scripts/install-codex.sh
+```
+
+**Codex（Windows）**
+```powershell
+.\hivequeen\scripts\install-codex.ps1
+```
+
+每台机器都执行一次。相同的 fork，不同的 agent ID，共享同一个大脑。
+
+---
+
+## 自定义
+
+### 你的规则
+编辑 `queen/agent-rules.md` — 适用于所有 agent 的行为边界。
+
+### 你的策略
+编辑 `queen/strategy.md` — 当前目标与决策方向。
+
+### 你的项目
+添加 `projects/<项目名>.md` — 处理该项目时自动加载的上下文。
+
+---
+
+## 编译共享记忆
+
+当各 agent 积累了足够记忆后，将其编译到 `shared/memory.md`：
+
+```bash
+bash ~/hivequeen/scripts/compile.sh
+```
+
+脚本聚合所有 `agents/*/memory.md` 并推送结果。
+所有 agent 在下次 `git pull` 时自动同步。
+
+---
+
+## 目录结构
+
+```
+hivequeen/
+├── AGENTS.md                   通用 bootstrap（所有工具读取）
+├── CLAUDE.md                   软链接 → AGENTS.md
+├── queen/
+│   ├── agent-rules.md          行为规则 — agent 只读
+│   └── strategy.md             决策方向 — agent 只读
+├── agents/
+│   └── <工具>-<主机名>/
+│       └── memory.md           该 agent 的私有记忆
+├── shared/
+│   └── memory.md               跨 agent 编译记忆
+├── projects/
+│   └── <项目>.md               项目上下文
+└── scripts/
+    ├── install-claude.sh / .ps1
+    ├── install-codex.sh  / .ps1
+    └── compile.sh
+```
+
+---
+
+## 文件行数限制
+
+每个文件有行数上限，超出后拆分为 topic 文件，原文件改为带链接的索引。
+
+| 文件 | 最大行数 |
+|---|---|
+| `queen/agent-rules.md` | 80 |
+| `queen/strategy.md` | 80 |
+| `agents/<id>/memory.md` | 200 |
+| `shared/memory.md` | 500 |
+| `projects/<name>.md` | 150 |
+
+**示例 — `agents/claude-macbook/memory.md` 达到上限后拆分：**
+
+```
+agents/claude-macbook/
+├── memory.md          ← 变为索引
+├── user_profile.md
+├── feedback_collab.md
+└── project_hivequeen.md
+```
+
+拆分后的 `memory.md`：
+```markdown
+# MEMORY — claude-macbook
+
+- [用户档案](user_profile.md) — 角色、技术栈、偏好
+- [协作习惯](feedback_collab.md) — 工作方式、修正记录
+- [项目：hivequeen](project_hivequeen.md) — 目标、决策
+```
+
+agent 先读索引，按需跟进相关 topic 文件。
+
+---
+
+## 为什么不会产生冲突？
+
+每个 agent 独占 `agents/` 下的一个目录，没有两个 agent 会写同一个文件。正常使用下，git 冲突从结构上就不可能发生。
+
+| 路径 | 谁写 | 可能冲突？ |
+|---|---|---|
+| `queen/` | 你（人工） | 不会 |
+| `agents/<id>/` | 仅该 agent | 不会 |
+| `shared/` | 仅 `compile.sh` | 不会 |
+
+---
+
+## 支持的工具
+
+| 工具 | 入口文件 | 状态 |
+|---|---|---|
+| Claude Code | `CLAUDE.md` | ✅ |
+| Codex | `AGENTS.md` | ✅ |
+| Gemini CLI | `GEMINI.md` | 添加软链接 |
+| Cursor | `.cursor/rules/` | 添加软链接 |
+| Windsurf | `.windsurf/rules/` | 添加软链接 |
+| Cline | `.clinerules/` | 添加软链接 |
+| GitHub Copilot | `.github/copilot-instructions.md` | 添加软链接 |
+
+为任何支持 markdown 配置文件的工具添加支持：
+```bash
+ln -s AGENTS.md <工具配置路径>
+```
+
+---
+
+## 灵感来源
+
+《安德的游戏》中的虫族蜂巢意识。每个个体都连接到同一个女王。
+没有独立记忆，没有冲突的自我。一个分布式智能体。
