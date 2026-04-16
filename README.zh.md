@@ -28,9 +28,13 @@ session 结束  →  git commit agents/<id>/  →  git push
 
 ## 快速开始
 
-### 1. Fork 本仓库
+### 1. 创建你的私有母体
 
-点击 GitHub 上的 **Fork**，这就成了你的私有母体。
+点击 GitHub 上的 **Use this template → Create a new repository**，
+visibility 选 **Private** — 你的记忆只属于你。
+
+> **为什么不用 Fork？** Fork 默认是公开的，且与上游仓库保持关联。
+> 从模板创建的私有仓库完全归你所有。
 
 ### 2. Clone 到每台机器
 
@@ -132,7 +136,8 @@ hivequeen/
     ├── install-codex.sh  / .ps1
     ├── install-openclaw.sh / .ps1
     ├── install-hermes.sh / .ps1
-    └── compile.sh
+    ├── compile.sh
+    └── update.sh
 ```
 
 ---
@@ -202,6 +207,19 @@ agent 先读索引，按需跟进相关 topic 文件。
 ```bash
 ln -s AGENTS.md <工具配置路径>
 ```
+
+---
+
+## 跟踪上游更新
+
+当 hivequeen 发布新版本时，用以下命令把协议层同步到你的私有母体：
+
+```bash
+bash ~/my-queen/scripts/update.sh
+```
+
+只更新 `scripts/`、`AGENTS.md`、`CLAUDE.md`、`SOUL.md` 和文档。
+**永远不会碰** `agents/`、`queen/`、`shared/`、`projects/` — 那些是你的。
 
 ---
 

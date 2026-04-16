@@ -28,9 +28,13 @@ Session end    →  git commit agents/<id>/  →  git push
 
 ## Quickstart
 
-### 1. Fork this repo
+### 1. Create your private queen
 
-Click **Fork** on GitHub. This becomes your private queen.
+Click **Use this template → Create a new repository** on GitHub.
+Set it to **Private** — your memory stays yours.
+
+> **Why not Fork?** Forks are public by default and tied to the upstream repo.
+> A private repo created from this template is fully yours.
 
 ### 2. Clone to each machine
 
@@ -132,7 +136,8 @@ hivequeen/
     ├── install-codex.sh  / .ps1
     ├── install-openclaw.sh / .ps1
     ├── install-hermes.sh / .ps1
-    └── compile.sh
+    ├── compile.sh
+    └── update.sh
 ```
 
 ---
@@ -202,6 +207,19 @@ To add any tool that reads a markdown config file:
 ```bash
 ln -s AGENTS.md <tool-config-path>
 ```
+
+---
+
+## Staying up to date
+
+When hivequeen ships improvements, pull only the protocol layer into your private queen:
+
+```bash
+bash ~/my-queen/scripts/update.sh
+```
+
+This updates `scripts/`, `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, and docs.
+It **never touches** `agents/`, `queen/`, `shared/`, or `projects/` — those are yours.
 
 ---
 
