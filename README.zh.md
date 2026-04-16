@@ -35,6 +35,10 @@ visibility 选 **Private** — 你的记忆只属于你。
 
 > **为什么不用 Fork？** Fork 默认是公开的，且与上游仓库保持关联。
 > 从模板创建的私有仓库完全归你所有。
+>
+> 当 hivequeen 发布更新时，`git merge upstream/main` 会与你刻意定制的
+> `queen/strategy.md`、`agents/`、`shared/` 产生冲突。
+> `update.sh` 脚本只同步协议层，你的私有数据完全不受影响。
 
 ### 2. Clone 到每台机器
 
