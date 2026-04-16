@@ -163,11 +163,13 @@ Each agent owns exactly one directory under `agents/`. No two agents ever write 
 
 ## Supported tools
 
-| Tool | Entry file | Status |
+| Tool | Entry file | Install |
 |---|---|---|
-| Claude Code | `CLAUDE.md` | ✅ |
-| Codex | `AGENTS.md` | ✅ |
-| Gemini CLI | `GEMINI.md` | add symlink |
+| Claude Code | `~/.claude/CLAUDE.md` | `bash scripts/install-claude.sh` |
+| Codex | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
+| OpenClaw | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
+| Hermes Agent | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
+| Gemini CLI | `GEMINI.md` | `ln -s AGENTS.md GEMINI.md` |
 | Cursor | `.cursor/rules/` | add symlink |
 | Windsurf | `.windsurf/rules/` | add symlink |
 | Cline | `.clinerules/` | add symlink |

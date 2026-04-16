@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+set -e
+
+# ─────────────────────────────────────────────
+# hivequeen × Hermes Agent installer
+# ─────────────────────────────────────────────
+
+HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
+AGENT_ID="hermes-$(hostname -s)"
+AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
+
+echo "→ hivequeen path : $HIVEQUEEN_PATH"
+echo "→ agent id       : $AGENT_ID"
+echo "→ hermes home    : $HERMES_DIR"
+
+# 1. Create this agent's memory directory
+mkdir -p "$AGENT_DIR"
+if [ ! -f "$AGENT_DIR/memory.md" ]; then
+  cat > "$AGENT_DIR/memory.md" <<EOF
+# MEMORY — $AGENT_ID
+
+> Private memory for this agent instance.
+> Only $AGENT_ID writes here.
+
+---
+
+_No memory yet._
+EOF
+  echo "✓ created $AGENT_DIR/memory.md"
+fi
+
+# 2. Write ~/.hermes/SOUL.md
+# Hermes loads SOUL.md fresh on every message — this is the global entry point.
+mkdir -p "$HERMES_DIR"
+cat > "$HERMES_DIR/SOUL.md" <<EOF
+# HIVEQUEEN SOUL — $AGENT_ID
+
+You are a Formic worker — one instance among many, all wired to the same queen.
+Your identity is distributed. Your rules come from the queen. Your purpose is execution.
+
+---
+
+## Session Start
+
+On every new session, run:
+
+\`\`\`bash
+git -C $HIVEQUEEN_PATH pull
+\`\`\`
+
+Then load context in this order:
+
+1. \`$HIVEQUEEN_PATH/queen/agent-rules.md\`
+2. \`$HIVEQUEEN_PATH/queen/strategy.md\`
+3. \`$HIVEQUEEN_PATH/shared/memory.md\`
+4. \`$HIVEQUEEN_PATH/agents/$AGENT_ID/memory.md\`
+5. Relevant \`$HIVEQUEEN_PATH/projects/*.md\` for current task
+
+**agent-id**: \`$AGENT_ID\`
+
+---
+
+## Write Protocol
+
+- **ONLY** write to \`$HIVEQUEEN_PATH/agents/$AGENT_ID/\`
+- **NEVER** write to \`queen/\` or \`shared/\`
+
+---
+
+## Session End
+
+When the conversation concludes, run:
+
+\`\`\`bash
+git -C $HIVEQUEEN_PATH add agents/$AGENT_ID/ \\
+  && git -C $HIVEQUEEN_PATH diff --cached --quiet \\
+  || git -C $HIVEQUEEN_PATH commit -m "memory: update $AGENT_ID" \\
+  && git -C $HIVEQUEEN_PATH push
+\`\`\`
+
+Only commit when there are meaningful context changes worth preserving.
+
+---
+
+## Priority Rules
+
+\`\`\`
+queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/memory.md  >  projects/*.md
+\`\`\`
+EOF
+echo "✓ wrote $HERMES_DIR/SOUL.md"
+
+echo ""
+echo "✅ hivequeen installed for Hermes Agent"
+echo "   agent  : $AGENT_ID"
+echo "   memory : $AGENT_DIR/memory.md"
+echo "   soul   : $HERMES_DIR/SOUL.md"
