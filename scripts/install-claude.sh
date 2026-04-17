@@ -94,18 +94,20 @@ with open(settings_path) as f:
     settings = json.load(f)
 hooks = settings.setdefault("hooks", {})
 
+def is_hivequeen_hook(cmd):
+    return (
+        "hook-hivequeen.sh" in cmd
+        or "export-claude-mem.sh" in cmd
+        or f"memory: update {agent_id}" in cmd
+        or (agent_id in cmd and "git push" in cmd)
+    )
+
 def upsert(event, matcher, cmd):
-    entries = hooks.setdefault(event, [])
-    # Remove any legacy hivequeen entries (previous installers / agent ids)
+    entries = hooks.get(event, [])
     filtered = []
     for e in entries:
         inner = (e.get("hooks") or [{}])[0].get("command", "")
-        is_legacy = (
-            "hook-hivequeen.sh" in inner
-            or ("/agents/" in inner and "memory: update" in inner)
-            or "export-claude-mem.sh" in inner
-        )
-        if not is_legacy:
+        if not is_hivequeen_hook(inner):
             filtered.append(e)
     filtered.append({
         "matcher": matcher,
