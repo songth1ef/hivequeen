@@ -98,6 +98,19 @@ bash ~/hivequeen/scripts/install-gemini.sh
 .\hivequeen\scripts\install-gemini.ps1
 ```
 
+**Aider（macOS / Linux）**
+```bash
+bash ~/hivequeen/scripts/install-aider.sh
+```
+
+**Aider（Windows）**
+```powershell
+.\hivequeen\scripts\install-aider.ps1
+```
+
+**其他 markdown-config 类 CLI**（Qwen Code、OpenCode、Trae、Kimi Code 等）——
+见 [支持的工具](#支持的工具) 与 `install-generic.sh`。
+
 每台机器都执行一次。相同的 fork，不同的 agent ID，共享同一个大脑。
 
 ---
@@ -205,22 +218,83 @@ agent 先读索引，按需跟进相关 topic 文件。
 
 ## 支持的工具
 
-| 工具 | 入口文件 | 安装方式 |
-|---|---|---|
-| Claude Code | `~/.claude/CLAUDE.md` | `bash scripts/install-claude.sh` |
-| Codex | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
-| OpenClaw | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
-| Hermes Agent | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
-| Gemini CLI | `~/.gemini/GEMINI.md` | `bash scripts/install-gemini.sh` |
-| Cursor | `.cursor/rules/` | 添加软链接 |
-| Windsurf | `.windsurf/rules/` | 添加软链接 |
-| Cline | `.clinerules/` | 添加软链接 |
-| GitHub Copilot | `.github/copilot-instructions.md` | 添加软链接 |
+### 原生安装器（配置路径明确、已验证）
 
-为任何支持 markdown 配置文件的工具添加支持：
+| 工具 | 厂商 | 入口文件 | 安装方式 |
+|---|---|---|---|
+| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install-claude.sh` |
+| Codex CLI | OpenAI | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
+| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install-gemini.sh` |
+| OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
+| Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
+| Aider | 开源 | `~/.aider-hivequeen.md`（通过 `.aider.conf.yml` 的 `read:` 接入） | `bash scripts/install-aider.sh` |
+
+只有 Claude Code 注册了 session hook，实现原子逐次写入同步。其他工具遵循
+bootstrap config 里写入的「会话结束提交」协议。
+
+### 通过 `install-generic.sh` 接入（需自行确认 config 路径）
+
+任何「启动时读一份 markdown 作为 system prompt」的 CLI 都可以一行命令接入。
+先通过工具的 `--help` 或文档确认它读取的指令文件路径，然后：
+
 ```bash
-ln -s AGENTS.md <工具配置路径>
+bash scripts/install-generic.sh <prefix> <config-path>
 ```
+
+示例 —— 路径仅作参考，实际请确认后再运行：
+
+| 工具 | 厂商 | 推荐 prefix |
+|---|---|---|
+| Qwen Code | 阿里通义 | `qwen` |
+| OpenCode | 开源 | `opencode` |
+| CodeBuddy Code | 腾讯 | `codebuddy` |
+| iFlow CLI | 阿里心流 | `iflow` |
+| Trae CLI / Solo | 字节跳动 | `trae` |
+| Qoder | 阿里 | `qoder` |
+| Kimi Code CLI | 月之暗面 | `kimi` |
+| 通义灵码 CLI | 阿里云 | `lingma` |
+
+> **提示**：Qwen Code 是 Gemini CLI 的 fork，可能直接认 `~/.gemini/GEMINI.md` —
+> 先试 `install-gemini.sh`。
+
+### Workspace 级（IDE 插件，软链接）
+
+| 工具 | 目标路径 | 安装方式 |
+|---|---|---|
+| Cursor | `.cursor/rules/hivequeen.md` | `ln -s AGENTS.md .cursor/rules/hivequeen.md` |
+| Windsurf | `.windsurf/rules/hivequeen.md` | `ln -s AGENTS.md .windsurf/rules/hivequeen.md` |
+| Cline（VS Code） | `.clinerules/hivequeen.md` | `ln -s AGENTS.md .clinerules/hivequeen.md` |
+| GitHub Copilot（repo 级） | `.github/copilot-instructions.md` | `ln -s AGENTS.md .github/copilot-instructions.md` |
+
+### 不支持（原因）
+
+| 工具 | 原因 |
+|---|---|
+| GitHub Copilot CLI（`gh copilot`） | Q&A 模式，没有持久化指令文件机制 |
+| Antigravity | IDE 为主，CLI 入口是项目级的，对外 bootstrap 机制未公开 |
+| CloudBase AI CLI | 本身是网关，调用下游 CLI —— 在下游工具上装 hivequeen 即可 |
+| ChatDev | 模拟「虚拟软件公司」的工作流编排，不是持久化单 agent 循环 |
+
+---
+
+## 用 `install-generic.sh` 接入新工具
+
+对于任何启动时读取单个 markdown 文件作为 system prompt 的 CLI：
+
+1. 确认它的 config 路径（通过 `--help` 或官方文档）
+2. 选一个短 prefix 作为 `agent-id` 前缀
+3. 运行：
+
+```bash
+bash scripts/install-generic.sh <prefix> <config-path>
+```
+
+脚本会：
+- 创建本机该工具的私有记忆目录 `agents/<prefix>-<hostname>/memory.md`
+- 把 hivequeen bootstrap 块注入到 `<config-path>` 的
+  `<!-- hivequeen:begin -->` / `<!-- hivequeen:end -->` 标记之间，保留用户已有内容
+- **不注册 hooks**：只有 Claude Code 有 hook 系统。其他工具靠 bootstrap 块里写的
+  git commit/push 指令，由 agent 在会话结束时自行执行
 
 ---
 

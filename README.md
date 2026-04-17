@@ -99,6 +99,19 @@ bash ~/hivequeen/scripts/install-gemini.sh
 .\hivequeen\scripts\install-gemini.ps1
 ```
 
+**Aider (macOS / Linux)**
+```bash
+bash ~/hivequeen/scripts/install-aider.sh
+```
+
+**Aider (Windows)**
+```powershell
+.\hivequeen\scripts\install-aider.ps1
+```
+
+**Any other markdown-config CLI** (Qwen Code, OpenCode, Trae, Kimi Code, …) — see
+[Supported tools](#supported-tools) and `install-generic.sh`.
+
 Repeat on every machine. Same fork, different agent IDs, one shared brain.
 
 ---
@@ -206,22 +219,86 @@ Each agent owns exactly one directory under `agents/`. No two agents ever write 
 
 ## Supported tools
 
-| Tool | Entry file | Install |
-|---|---|---|
-| Claude Code | `~/.claude/CLAUDE.md` | `bash scripts/install-claude.sh` |
-| Codex | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
-| OpenClaw | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
-| Hermes Agent | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
-| Gemini CLI | `~/.gemini/GEMINI.md` | `bash scripts/install-gemini.sh` |
-| Cursor | `.cursor/rules/` | add symlink |
-| Windsurf | `.windsurf/rules/` | add symlink |
-| Cline | `.clinerules/` | add symlink |
-| GitHub Copilot | `.github/copilot-instructions.md` | add symlink |
+### Native installers (known config path, tested)
 
-To add any tool that reads a markdown config file:
+| Tool | Vendor | Entry file | Install |
+|---|---|---|---|
+| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install-claude.sh` |
+| Codex CLI | OpenAI | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
+| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install-gemini.sh` |
+| OpenClaw | open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
+| Hermes Agent | open source | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
+| Aider | open source | `~/.aider-hivequeen.md` (wired via `.aider.conf.yml` `read:`) | `bash scripts/install-aider.sh` |
+
+Only Claude Code registers session hooks for atomic per-write memory sync.
+Other tools follow the session-end commit protocol written into their
+bootstrap config.
+
+### Via `install-generic.sh` (you confirm the config path)
+
+Any CLI that loads a single markdown file at startup as its system prompt
+can be bootstrapped in one line. Confirm the tool's instruction-file path
+(usually `--help` or its docs), then:
+
 ```bash
-ln -s AGENTS.md <tool-config-path>
+bash scripts/install-generic.sh <prefix> <config-path>
 ```
+
+Examples — paths are illustrative, verify before running:
+
+| Tool | Vendor | Suggested prefix |
+|---|---|---|
+| Qwen Code | Alibaba 通义 | `qwen` |
+| OpenCode | open source | `opencode` |
+| CodeBuddy Code | Tencent | `codebuddy` |
+| iFlow CLI | Alibaba 心流 | `iflow` |
+| Trae CLI / Solo | ByteDance | `trae` |
+| Qoder | Alibaba | `qoder` |
+| Kimi Code CLI | Moonshot | `kimi` |
+| 通义灵码 CLI | Alibaba Cloud | `lingma` |
+
+> **Tip**: Qwen Code is a Gemini CLI fork and may also honour
+> `~/.gemini/GEMINI.md` out of the box — try `install-gemini.sh` first.
+
+### Workspace-level (IDE plugins, symlink)
+
+| Tool | Target | Install |
+|---|---|---|
+| Cursor | `.cursor/rules/hivequeen.md` | `ln -s AGENTS.md .cursor/rules/hivequeen.md` |
+| Windsurf | `.windsurf/rules/hivequeen.md` | `ln -s AGENTS.md .windsurf/rules/hivequeen.md` |
+| Cline (VS Code) | `.clinerules/hivequeen.md` | `ln -s AGENTS.md .clinerules/hivequeen.md` |
+| GitHub Copilot (repo) | `.github/copilot-instructions.md` | `ln -s AGENTS.md .github/copilot-instructions.md` |
+
+### Not supported (and why)
+
+| Tool | Reason |
+|---|---|
+| GitHub Copilot CLI (`gh copilot`) | Q&A style, no persistent instruction-file mechanism |
+| Antigravity | IDE-first; CLI entrypoint is project-scoped and undocumented for external bootstrap |
+| CloudBase AI CLI | Gateway that invokes downstream CLIs — install hivequeen on the downstream tools instead |
+| ChatDev | Simulated "software company" workflow, not a persistent single-agent loop |
+
+---
+
+## Adding a new tool via `install-generic.sh`
+
+For any CLI whose startup loads a single markdown file as its system prompt:
+
+1. Find the config path (check `--help` or the tool's docs)
+2. Pick a short prefix for the `agent-id`
+3. Run:
+
+```bash
+bash scripts/install-generic.sh <prefix> <config-path>
+```
+
+This:
+- Creates `agents/<prefix>-<hostname>/memory.md` for that tool on this machine
+- Writes the hivequeen bootstrap block into `<config-path>` inside
+  `<!-- hivequeen:begin -->` / `<!-- hivequeen:end -->` markers, preserving
+  any existing user content
+- Does NOT register hooks — the bootstrap block instructs the agent to
+  `git add / commit / push` its memory dir at session end
 
 ---
 
