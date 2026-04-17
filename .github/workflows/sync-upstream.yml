@@ -28,7 +28,12 @@ jobs:
       UPSTREAM_URL: https://github.com/songth1ef/hivequeen.git
       UPSTREAM_BRANCH: main
       SYNC_BRANCH: sync/upstream
-      # keep this list in sync with scripts/update.sh
+      # Protocol paths that GITHUB_TOKEN can push.
+      # Note: .github/workflows/ is intentionally excluded here — GitHub
+      # rejects GITHUB_TOKEN pushes that modify workflow files for security
+      # reasons (you would get 403 Resource not accessible by integration).
+      # Workflow updates are synced via scripts/maintenance/update.sh
+      # instead, which uses your local git auth that has workflow scope.
       PROTOCOL_PATHS: scripts/ AGENTS.md CLAUDE.md SOUL.md README.md README.zh.md
     steps:
       - uses: actions/checkout@v4

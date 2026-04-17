@@ -18,8 +18,14 @@ UPSTREAM_BRANCH="main"
 
 # Protocol-layer files that are safe to overwrite from upstream.
 # queen/, agents/, shared/, projects/ are intentionally excluded.
+#
+# .github/workflows/ is included so CI workflow fixes (e.g. the YAML
+# indentation bug fixed in hivequeen 43ae297) reach every private queen.
+# If you need per-queen workflow customization, do it via repo-level
+# Variables or Secrets rather than editing the YAML in place.
 PROTOCOL_FILES=(
   scripts/
+  .github/workflows/
   AGENTS.md
   CLAUDE.md
   SOUL.md
