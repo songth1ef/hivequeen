@@ -12,7 +12,8 @@
 set -euo pipefail
 
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AGENT_ID="${HIVEQUEEN_AGENT_ID:-claude-$(hostname -s)}"
+HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
+AGENT_ID="${HIVEQUEEN_AGENT_ID:-claude-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')}"
 OUTPUT_FILE="$HIVEQUEEN_PATH/agents/$AGENT_ID/claude-mem-digest.md"
 WORKER_URL="${CLAUDE_MEM_URL:-http://localhost:37777}"
 

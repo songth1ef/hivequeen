@@ -15,7 +15,8 @@ if [ -f "$HIVEQUEEN_ID_FILE" ]; then
   AGENT_ID="$(cat "$HIVEQUEEN_ID_FILE")"
 else
   SUFFIX="$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 4)"
-  AGENT_ID="claude-$(hostname -s)-$SUFFIX"
+  HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
+  AGENT_ID="claude-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')-$SUFFIX"
   echo "$AGENT_ID" > "$HIVEQUEEN_ID_FILE"
 fi
 

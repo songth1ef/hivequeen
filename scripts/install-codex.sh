@@ -8,7 +8,8 @@ set -e
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CODEX_DIR="$HOME/.codex"
 SETTINGS="$CODEX_DIR/config.json"
-AGENT_ID="codex-$(hostname -s)"
+HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
+AGENT_ID="codex-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')"
 AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
 
 echo "→ hivequeen path : $HIVEQUEEN_PATH"

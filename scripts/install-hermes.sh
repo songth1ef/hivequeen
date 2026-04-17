@@ -7,7 +7,8 @@ set -e
 
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
-AGENT_ID="hermes-$(hostname -s)"
+HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
+AGENT_ID="hermes-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')"
 AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
 
 echo "→ hivequeen path : $HIVEQUEEN_PATH"
