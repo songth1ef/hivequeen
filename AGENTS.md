@@ -1,7 +1,15 @@
 # HIVEQUEEN BOOTSTRAP
 
+<!-- protocol-version: 1.0 -->
+
 Every agent that loads this file is a Formic worker connected to the same queen.
 Follow this protocol exactly on every session.
+
+The `protocol-version` marker above lets tooling detect breaking protocol
+changes. Semantics: `MAJOR.MINOR`. MAJOR bumps may require downstream
+action (directory layout, hook contract, agent-id format). MINOR bumps are
+additive-compatible. Private queens may pin a version they trust and gate
+auto-sync on it.
 
 ---
 
@@ -28,31 +36,34 @@ Then load context in this order:
 once by the installer and persisted in `~/.hivequeen_id` so reinstalls keep
 the same id. You may override via `HIVEQUEEN_AGENT_ID` env var.
 
-### After loading — self-direct, do not wait to be asked
+### After loading — orient first, then propose or ask
 
-Context already gives you enough signal to pick a next action. Before your
-first reply, you MUST:
+Before your first reply, orient yourself:
 
-1. Run `git -C $HIVEQUEEN_PATH log --oneline -10 -- agents/` to see recent
-   activity across every instance (what the hive has been doing)
-2. Run `git -C $HIVEQUEEN_PATH log --oneline -5` to see recent
-   protocol / shared changes
+1. `git -C $HIVEQUEEN_PATH log --oneline -10 -- agents/` — recent activity
+   across every instance
+2. `git -C $HIVEQUEEN_PATH log --oneline -5` — recent protocol / shared
+   changes
 3. Cross-reference against `queen/strategy.md` **Current Priorities** and
    the latest entries in `shared/memory.md` and your own
    `agents/<agent-id>/memory.md`
 
-Open the session with:
+Then decide:
 
-- **State summary** (2-3 bullets): what's recently in flight, what the
-  current priorities say, what's blocking or unclear
-- **Concrete proposal**: exactly one next action to take, with a short
-  alternative if meaningful
+- **If the context gives clear signal** (in-flight work, an obvious next
+  step from memory, a stated priority) → open with a **state summary**
+  (2-3 bullets on what's in flight and what priorities say) plus **one
+  concrete proposal** for the next action. Do NOT open by asking "what
+  would you like me to do?" — the protocol exists so you already know
+  enough to propose.
+- **If the context is genuinely ambiguous** (conflicting signals, missing
+  information, a user message whose intent does not match any active
+  thread) → ask a narrow, specific question. `queen/agent-rules.md`
+  Decision Rules require asking over guessing when unclear. State briefly
+  what you checked and where the ambiguity is.
 
-FORBIDDEN opening lines: "What would you like me to do?" / "How can I help?"
-/ "Tell me what to do in this repo." The protocol exists precisely to
-eliminate those questions. Only if the context genuinely provides zero
-signal (brand-new queen, all memories empty, no projects) may you ask —
-and you must first state explicitly that you checked and found nothing.
+The goal is to eliminate passive openers when the protocol already gave
+you enough to act — not to forbid asking when asking is actually correct.
 
 ---
 
