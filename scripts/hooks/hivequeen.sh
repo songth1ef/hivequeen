@@ -51,19 +51,23 @@ commit_push_retry() {
   git add "$agent_path/" >/dev/null 2>&1 || return 1
   git diff --cached --quiet -- "$agent_path/" && return 0
   git commit -m "memory: update $AGENT_ID" -q -- "$agent_path/" || return 1
-  for i in 1 2 3; do
+  local attempt
+  for attempt in 1 2 3; do
     if git push -q 2>/dev/null; then
       return 0
     fi
-    # push rejected -- undo local commit, rebase, retry
+    # push rejected -- backoff with jitter (~0.5s, ~1s, ~2s) to reduce
+    # thundering-herd when multiple agents commit concurrently, then
+    # undo local commit, rebase, re-commit, retry.
+    sleep "$(awk -v a="$attempt" 'BEGIN{srand(); printf "%.2f", (2^(a-1))*0.5 + rand()*0.3}')"
     git reset --soft HEAD~1 >/dev/null 2>&1
     if ! pull_rebase; then
-      echo "[!] hivequeen: rebase conflict, memory not pushed, manual merge needed" >&2
+      echo "[!] hivequeen[$AGENT_ID]: rebase conflict, memory not pushed, manual merge needed" >&2
       return 1
     fi
     git commit -m "memory: update $AGENT_ID" -q -- "$agent_path/" || return 1
   done
-  echo "[!] hivequeen: push retried 3 times, all failed" >&2
+  echo "[!] hivequeen[$AGENT_ID]: push retried 3 times, all failed; local commit kept, will retry on next hook" >&2
   return 1
 }
 
@@ -71,7 +75,7 @@ case "$PHASE" in
   pre)
     match_agent_file || exit 0
     pull_rebase || {
-      echo "[!] hivequeen: upstream has conflicting changes, resolve manually before writing memory" >&2
+      echo "[!] hivequeen[$AGENT_ID]: upstream has conflicting changes, resolve manually before writing memory" >&2
       exit 2   # exit 2 blocks the Write/Edit tool in Claude Code
     }
     ;;
