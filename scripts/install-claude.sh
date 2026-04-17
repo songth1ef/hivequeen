@@ -66,41 +66,61 @@ See full protocol: \`$HIVEQUEEN_PATH/AGENTS.md\`
 EOF
 echo "✓ wrote $CLAUDE_DIR/CLAUDE.md"
 
-# 3. Register Stop hook for auto-commit
+# 3. Register hooks: PreToolUse / PostToolUse / Stop
+#    Atomic per-write sync: pull before every memory Write/Edit,
+#    commit+push right after. Stop hook remains as safety net.
 mkdir -p "$CLAUDE_DIR"
 
-# Read or init settings.json
 if [ ! -f "$SETTINGS" ]; then
   echo '{}' > "$SETTINGS"
 fi
 
-# Inject Stop hook via Python (available on most systems)
 python3 - <<PYEOF
-import json, os
+import json
 
-settings_path = "$SETTINGS"
+settings_path  = "$SETTINGS"
 hivequeen_path = "$HIVEQUEEN_PATH"
-agent_id = "$AGENT_ID"
+agent_id       = "$AGENT_ID"
+hook_script    = f"{hivequeen_path}/scripts/hook-hivequeen.sh"
+
+pre_cmd  = f"bash {hook_script} pre {agent_id}"
+post_cmd = f"bash {hook_script} post {agent_id}"
+stop_cmd = (
+    f"bash {hivequeen_path}/scripts/export-claude-mem.sh; "
+    f"bash {hook_script} stop {agent_id}"
+)
 
 with open(settings_path) as f:
     settings = json.load(f)
-
-hook_cmd = f"""bash {hivequeen_path}/scripts/export-claude-mem.sh; cd {hivequeen_path} && git pull --rebase --autostash -q && git add agents/{agent_id}/ && git diff --cached --quiet || git commit -m 'memory: update {agent_id}' && git push -q"""
-
-hook = {"matcher": "", "hooks": [{"type": "command", "command": hook_cmd}]}
-
 hooks = settings.setdefault("hooks", {})
-stop_hooks = hooks.setdefault("Stop", [])
 
-# Avoid duplicate
-existing_cmds = [h.get("hooks", [{}])[0].get("command", "") for h in stop_hooks]
-if hook_cmd not in existing_cmds:
-    stop_hooks.append(hook)
-    with open(settings_path, "w") as f:
-        json.dump(settings, f, indent=2)
-    print(f"✓ registered Stop hook in {settings_path}")
-else:
-    print("✓ Stop hook already registered")
+def upsert(event, matcher, cmd):
+    entries = hooks.setdefault(event, [])
+    # Remove any legacy hivequeen entries (previous installers / agent ids)
+    filtered = []
+    for e in entries:
+        inner = (e.get("hooks") or [{}])[0].get("command", "")
+        is_legacy = (
+            "hook-hivequeen.sh" in inner
+            or ("/agents/" in inner and "memory: update" in inner)
+            or "export-claude-mem.sh" in inner
+        )
+        if not is_legacy:
+            filtered.append(e)
+    filtered.append({
+        "matcher": matcher,
+        "hooks":   [{"type": "command", "command": cmd}],
+    })
+    hooks[event] = filtered
+
+upsert("PreToolUse",  "Write|Edit", pre_cmd)
+upsert("PostToolUse", "Write|Edit", post_cmd)
+upsert("Stop",        "",           stop_cmd)
+
+with open(settings_path, "w") as f:
+    json.dump(settings, f, indent=2)
+
+print(f"✓ registered PreToolUse / PostToolUse / Stop hooks in {settings_path}")
 PYEOF
 
 echo ""
