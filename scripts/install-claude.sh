@@ -75,55 +75,8 @@ if [ ! -f "$SETTINGS" ]; then
   echo '{}' > "$SETTINGS"
 fi
 
-python3 - <<PYEOF
-import json
-
-settings_path  = "$SETTINGS"
-hivequeen_path = "$HIVEQUEEN_PATH"
-agent_id       = "$AGENT_ID"
-hook_script    = f"{hivequeen_path}/scripts/hook-hivequeen.sh"
-
-pre_cmd  = f"bash {hook_script} pre {agent_id}"
-post_cmd = f"bash {hook_script} post {agent_id}"
-stop_cmd = (
-    f"bash {hivequeen_path}/scripts/export-claude-mem.sh; "
-    f"bash {hook_script} stop {agent_id}"
-)
-
-with open(settings_path) as f:
-    settings = json.load(f)
-hooks = settings.setdefault("hooks", {})
-
-def is_hivequeen_hook(cmd):
-    return (
-        "hook-hivequeen.sh" in cmd
-        or "export-claude-mem.sh" in cmd
-        or f"memory: update {agent_id}" in cmd
-        or (agent_id in cmd and "git push" in cmd)
-    )
-
-def upsert(event, matcher, cmd):
-    entries = hooks.get(event, [])
-    filtered = []
-    for e in entries:
-        inner = (e.get("hooks") or [{}])[0].get("command", "")
-        if not is_hivequeen_hook(inner):
-            filtered.append(e)
-    filtered.append({
-        "matcher": matcher,
-        "hooks":   [{"type": "command", "command": cmd}],
-    })
-    hooks[event] = filtered
-
-upsert("PreToolUse",  "Write|Edit", pre_cmd)
-upsert("PostToolUse", "Write|Edit", post_cmd)
-upsert("Stop",        "",           stop_cmd)
-
-with open(settings_path, "w") as f:
-    json.dump(settings, f, indent=2)
-
-print(f"✓ registered PreToolUse / PostToolUse / Stop hooks in {settings_path}")
-PYEOF
+python3 "$HIVEQUEEN_PATH/scripts/_install-hooks.py" \
+  "$SETTINGS" "$HIVEQUEEN_PATH" "$AGENT_ID"
 
 echo ""
 echo "✅ hivequeen installed for Claude Code"

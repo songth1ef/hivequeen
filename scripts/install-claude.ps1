@@ -5,9 +5,22 @@
 $ErrorActionPreference = "Stop"
 
 $HivequeenPath = (Resolve-Path "$PSScriptRoot\..").Path
-$ClaudeDir = "$env:USERPROFILE\.claude"
-$Settings = "$ClaudeDir\settings.json"
-$AgentId = "claude-$env:COMPUTERNAME".ToLower()
+$ClaudeDir     = "$env:USERPROFILE\.claude"
+$Settings      = "$ClaudeDir\settings.json"
+$IdFile        = "$env:USERPROFILE\.hivequeen_id"
+
+# Generate or reuse agent-id. Persist in ~/.hivequeen_id so the Windows and
+# Git-Bash installers share the same identity on this machine.
+if (Test-Path $IdFile) {
+    $AgentId = (Get-Content $IdFile -Raw).Trim()
+} else {
+    $Chars  = [char[]]([char[]]'abcdefghijklmnopqrstuvwxyz' + [char[]]'0123456789')
+    $Suffix = -join (1..4 | ForEach-Object { $Chars | Get-Random })
+    $Host   = $env:COMPUTERNAME.ToLower()
+    $AgentId = "claude-$Host-$Suffix"
+    Set-Content -Path $IdFile -Value $AgentId -Encoding ASCII -NoNewline
+}
+
 $AgentDir = "$HivequeenPath\agents\$AgentId"
 
 Write-Host "-> hivequeen path : $HivequeenPath"
@@ -55,37 +68,27 @@ See full protocol: ``$HivequeenPath\AGENTS.md``
 "@ | Set-Content -Path "$ClaudeDir\CLAUDE.md" -Encoding UTF8
 Write-Host "v wrote $ClaudeDir\CLAUDE.md"
 
-# 3. Register Stop hook in settings.json
+# 3. Register hooks via shared Python helper (avoids PowerShell's
+#    ConvertTo-Json bug on nested single-element arrays).
 if (-not (Test-Path $Settings)) {
     '{}' | Set-Content -Path $Settings -Encoding UTF8
 }
 
-$HookCmd = "cd `"$HivequeenPath`" && git pull --rebase --autostash -q && git add agents/$AgentId/ && git diff --cached --quiet || git commit -m 'memory: update $AgentId' && git push -q"
-
-$SettingsObj = Get-Content $Settings -Raw | ConvertFrom-Json
-
-if (-not $SettingsObj.hooks) {
-    $SettingsObj | Add-Member -NotePropertyName hooks -NotePropertyValue @{}
+$PythonCmd = $null
+foreach ($Cand in @("python3", "python", "py")) {
+    if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
 }
-if (-not $SettingsObj.hooks.Stop) {
-    $SettingsObj.hooks | Add-Member -NotePropertyName Stop -NotePropertyValue @()
+if (-not $PythonCmd) {
+    throw "python3 (or python / py) not found — required for hook registration"
 }
 
-$NewHook = @{
-    matcher = ""
-    hooks   = @(@{ type = "command"; command = $HookCmd })
-}
-
-$Exists = $SettingsObj.hooks.Stop | Where-Object { $_.hooks[0].command -eq $HookCmd }
-if (-not $Exists) {
-    $SettingsObj.hooks.Stop += $NewHook
-    $SettingsObj | ConvertTo-Json -Depth 10 | Set-Content -Path $Settings -Encoding UTF8
-    Write-Host "v registered Stop hook in $Settings"
-} else {
-    Write-Host "v Stop hook already registered"
+$InstallerPy = Join-Path $HivequeenPath "scripts\_install-hooks.py"
+& $PythonCmd $InstallerPy $Settings $HivequeenPath $AgentId
+if ($LASTEXITCODE -ne 0) {
+    throw "hook installation failed (exit $LASTEXITCODE)"
 }
 
 Write-Host ""
 Write-Host "OK hivequeen installed for Claude Code"
-Write-Host "   agent: $AgentId"
+Write-Host "   agent : $AgentId"
 Write-Host "   memory: $MemoryFile"
