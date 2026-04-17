@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-# ─────────────────────────────────────────────
-# hivequeen × Claude Code installer
-# ─────────────────────────────────────────────
+# ---------------------------------------------
+# hivequeen x Claude Code installer
+# ---------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 SETTINGS="$CLAUDE_DIR/settings.json"
 HIVEQUEEN_ID_FILE="$HOME/.hivequeen_id"
@@ -22,14 +22,14 @@ fi
 
 AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
 
-echo "→ hivequeen path : $HIVEQUEEN_PATH"
-echo "→ agent id       : $AGENT_ID"
+echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> agent id       : $AGENT_ID"
 
 # 1. Create this agent's memory directory
 mkdir -p "$AGENT_DIR"
 if [ ! -f "$AGENT_DIR/memory.md" ]; then
   cat > "$AGENT_DIR/memory.md" <<EOF
-# MEMORY — $AGENT_ID
+# MEMORY -- $AGENT_ID
 
 > Private memory for this agent instance.
 > Only $AGENT_ID writes here.
@@ -38,13 +38,13 @@ if [ ! -f "$AGENT_DIR/memory.md" ]; then
 
 _No memory yet._
 EOF
-  echo "✓ created $AGENT_DIR/memory.md"
+  echo "[ok] created $AGENT_DIR/memory.md"
 fi
 
 # 2. Inject hivequeen bootstrap into global CLAUDE.md.
 #    Preserves any existing user content via HTML-comment marker block.
 mkdir -p "$CLAUDE_DIR"
-python3 "$HIVEQUEEN_PATH/scripts/_install-bootstrap.py" \
+python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
   "$CLAUDE_DIR/CLAUDE.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
 
 # 3. Register hooks: PreToolUse / PostToolUse / Stop
@@ -56,10 +56,10 @@ if [ ! -f "$SETTINGS" ]; then
   echo '{}' > "$SETTINGS"
 fi
 
-python3 "$HIVEQUEEN_PATH/scripts/_install-hooks.py" \
+python3 "$HIVEQUEEN_PATH/scripts/install/_hooks.py" \
   "$SETTINGS" "$HIVEQUEEN_PATH" "$AGENT_ID"
 
 echo ""
-echo "✅ hivequeen installed for Claude Code"
+echo "OK hivequeen installed for Claude Code"
 echo "   agent: $AGENT_ID"
 echo "   memory: $AGENT_DIR/memory.md"

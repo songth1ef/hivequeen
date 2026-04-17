@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # hivequeen compile
 # Aggregates all agents/*/memory.md into shared/memory.md
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SHARED="$HIVEQUEEN_PATH/shared/memory.md"
 AGENTS_DIR="$HIVEQUEEN_PATH/agents"
 
-echo "→ scanning $AGENTS_DIR"
+echo "-> scanning $AGENTS_DIR"
 
 # Collect all agent memory files
 MEMORY_FILES=()
@@ -19,11 +19,11 @@ while IFS= read -r -d '' f; do
 done < <(find "$AGENTS_DIR" -name "memory.md" -print0 | sort -z)
 
 if [ ${#MEMORY_FILES[@]} -eq 0 ]; then
-  echo "⚠ no agent memory files found, nothing to compile"
+  echo "[!] no agent memory files found, nothing to compile"
   exit 0
 fi
 
-echo "→ found ${#MEMORY_FILES[@]} agent(s): ${MEMORY_FILES[*]}"
+echo "-> found ${#MEMORY_FILES[@]} agent(s): ${MEMORY_FILES[*]}"
 
 # Build compiled output
 NOW=$(date -u +"%Y-%m-%d %H:%M UTC")
@@ -45,7 +45,7 @@ for f in "${MEMORY_FILES[@]}"; do
 done
 
 printf "%b" "$OUTPUT" > "$SHARED"
-echo "✓ compiled → $SHARED"
+echo "[ok] compiled -> $SHARED"
 
 # Commit and push
 cd "$HIVEQUEEN_PATH"
@@ -53,4 +53,4 @@ git add shared/memory.md
 git diff --cached --quiet || git commit -m "memory: compile shared $(date -u +%Y-%m-%d)"
 git push -q
 
-echo "✅ shared memory compiled and pushed"
+echo "OK shared memory compiled and pushed"

@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # hivequeen x generic markdown-config installer (Windows)
 #
 # See install-generic.sh for full docs.
@@ -9,7 +9,7 @@
 # Examples:
 #   .\install-generic.ps1 qwen  "$env:USERPROFILE\.qwen\QWEN.md"
 #   .\install-generic.ps1 trae  "$env:USERPROFILE\.trae\system.md"
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 param(
     [Parameter(Mandatory=$true, Position=0)] [string] $Prefix,
@@ -18,7 +18,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$HivequeenPath = (Resolve-Path "$PSScriptRoot\..").Path
+$HivequeenPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $ConfigPath    = [Environment]::ExpandEnvironmentVariables($ConfigPath)
 $Host          = $env:COMPUTERNAME.ToLower()
 $AgentId       = "$Prefix-$Host"
@@ -33,7 +33,7 @@ foreach ($Cand in @("python3", "python", "py")) {
     if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
 }
 if (-not $PythonCmd) {
-    throw "python3 (or python / py) not found — required by hivequeen installer"
+    throw "python3 (or python / py) not found -- required by hivequeen installer"
 }
 
 # 1. Create agent memory directory
@@ -41,7 +41,7 @@ New-Item -ItemType Directory -Force -Path $AgentDir | Out-Null
 $MemoryFile = "$AgentDir\memory.md"
 if (-not (Test-Path $MemoryFile)) {
     @"
-# MEMORY — $AgentId
+# MEMORY -- $AgentId
 
 > Private memory for this agent instance.
 > Only $AgentId writes here.
@@ -58,7 +58,7 @@ $ConfigDir = Split-Path -Parent $ConfigPath
 if ($ConfigDir) {
     New-Item -ItemType Directory -Force -Path $ConfigDir | Out-Null
 }
-& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-bootstrap.py") `
+& $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
     $ConfigPath $HivequeenPath $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "bootstrap injection failed (exit $LASTEXITCODE)"

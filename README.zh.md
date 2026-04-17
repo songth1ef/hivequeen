@@ -50,66 +50,66 @@ git clone git@github.com:<你的用户名>/hivequeen.git ~/hivequeen
 
 **Claude Code（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install-claude.sh
+bash ~/hivequeen/scripts/install/claude.sh
 ```
 
 **Claude Code（Windows）**
 ```powershell
-.\hivequeen\scripts\install-claude.ps1
+.\hivequeen\scripts\install\claude.ps1
 ```
 
 **Codex（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install-codex.sh
+bash ~/hivequeen/scripts/install/codex.sh
 ```
 
 **Codex（Windows）**
 ```powershell
-.\hivequeen\scripts\install-codex.ps1
+.\hivequeen\scripts\install\codex.ps1
 ```
 
 **OpenClaw（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install-openclaw.sh
+bash ~/hivequeen/scripts/install/openclaw.sh
 ```
 
 **OpenClaw（Windows）**
 ```powershell
-.\hivequeen\scripts\install-openclaw.ps1
+.\hivequeen\scripts\install\openclaw.ps1
 ```
 
 **Hermes Agent（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install-hermes.sh
+bash ~/hivequeen/scripts/install/hermes.sh
 ```
 
 **Hermes Agent（Windows）**
 ```powershell
-.\hivequeen\scripts\install-hermes.ps1
+.\hivequeen\scripts\install\hermes.ps1
 ```
 
 **Gemini CLI（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install-gemini.sh
+bash ~/hivequeen/scripts/install/gemini.sh
 ```
 
 **Gemini CLI（Windows）**
 ```powershell
-.\hivequeen\scripts\install-gemini.ps1
+.\hivequeen\scripts\install\gemini.ps1
 ```
 
 **Aider（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install-aider.sh
+bash ~/hivequeen/scripts/install/aider.sh
 ```
 
 **Aider（Windows）**
 ```powershell
-.\hivequeen\scripts\install-aider.ps1
+.\hivequeen\scripts\install\aider.ps1
 ```
 
 **其他 markdown-config 类 CLI**（Qwen Code、OpenCode、Trae、Kimi Code 等）——
-见 [支持的工具](#支持的工具) 与 `install-generic.sh`。
+见 [支持的工具](#支持的工具) 与 `install/generic.sh`。
 
 每台机器都执行一次。相同的 fork，不同的 agent ID，共享同一个大脑。
 
@@ -133,7 +133,7 @@ bash ~/hivequeen/scripts/install-aider.sh
 当各 agent 积累了足够记忆后，将其编译到 `shared/memory.md`：
 
 ```bash
-bash ~/hivequeen/scripts/compile.sh
+bash ~/hivequeen/scripts/maintenance/compile.sh
 ```
 
 脚本聚合所有 `agents/*/memory.md` 并推送结果。
@@ -159,12 +159,23 @@ hivequeen/
 ├── projects/
 │   └── <项目>.md               项目上下文
 └── scripts/
-    ├── install-claude.sh / .ps1
-    ├── install-codex.sh  / .ps1
-    ├── install-openclaw.sh / .ps1
-    ├── install-hermes.sh / .ps1
-    ├── compile.sh
-    └── update.sh
+    ├── install/                   按工具分的安装器
+    │   ├── claude.{sh,ps1}
+    │   ├── codex.{sh,ps1}
+    │   ├── gemini.{sh,ps1}
+    │   ├── hermes.{sh,ps1}
+    │   ├── openclaw.{sh,ps1}
+    │   ├── aider.{sh,ps1}
+    │   ├── generic.{sh,ps1}       任何 markdown-config CLI
+    │   ├── _bootstrap.py          共享 bootstrap 注入器
+    │   └── _hooks.py              共享 hook 注册器（Claude Code）
+    ├── hooks/                     运行时 hook
+    │   ├── hivequeen.sh           pre/post/stop 统一入口
+    │   ├── _match-file.py         stdin 文件匹配器
+    │   └── export-claude-mem.sh   claude-mem 可选桥接
+    └── maintenance/               运维
+        ├── compile.sh             聚合 agents/* 到 shared/
+        └── update.sh              拉取 upstream 协议层
 ```
 
 ---
@@ -222,23 +233,23 @@ agent 先读索引，按需跟进相关 topic 文件。
 
 | 工具 | 厂商 | 入口文件 | 安装方式 |
 |---|---|---|---|
-| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install-claude.sh` |
-| Codex CLI | OpenAI | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
-| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install-gemini.sh` |
-| OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
-| Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
-| Aider | 开源 | `~/.aider-hivequeen.md`（通过 `.aider.conf.yml` 的 `read:` 接入） | `bash scripts/install-aider.sh` |
+| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` |
+| Codex CLI | OpenAI | `~/.codex/instructions.md` | `bash scripts/install/codex.sh` |
+| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` |
+| OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` |
+| Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` |
+| Aider | 开源 | `~/.aider-hivequeen.md`（通过 `.aider.conf.yml` 的 `read:` 接入） | `bash scripts/install/aider.sh` |
 
 只有 Claude Code 注册了 session hook，实现原子逐次写入同步。其他工具遵循
 bootstrap config 里写入的「会话结束提交」协议。
 
-### 通过 `install-generic.sh` 接入（需自行确认 config 路径）
+### 通过 `install/generic.sh` 接入（需自行确认 config 路径）
 
 任何「启动时读一份 markdown 作为 system prompt」的 CLI 都可以一行命令接入。
 先通过工具的 `--help` 或文档确认它读取的指令文件路径，然后：
 
 ```bash
-bash scripts/install-generic.sh <prefix> <config-path>
+bash scripts/install/generic.sh <prefix> <config-path>
 ```
 
 示例 —— 路径仅作参考，实际请确认后再运行：
@@ -255,7 +266,7 @@ bash scripts/install-generic.sh <prefix> <config-path>
 | 通义灵码 CLI | 阿里云 | `lingma` |
 
 > **提示**：Qwen Code 是 Gemini CLI 的 fork，可能直接认 `~/.gemini/GEMINI.md` —
-> 先试 `install-gemini.sh`。
+> 先试 `install/gemini.sh`。
 
 ### Workspace 级（IDE 插件，软链接）
 
@@ -277,7 +288,7 @@ bash scripts/install-generic.sh <prefix> <config-path>
 
 ---
 
-## 用 `install-generic.sh` 接入新工具
+## 用 `install/generic.sh` 接入新工具
 
 对于任何启动时读取单个 markdown 文件作为 system prompt 的 CLI：
 
@@ -286,7 +297,7 @@ bash scripts/install-generic.sh <prefix> <config-path>
 3. 运行：
 
 ```bash
-bash scripts/install-generic.sh <prefix> <config-path>
+bash scripts/install/generic.sh <prefix> <config-path>
 ```
 
 脚本会：
@@ -303,7 +314,7 @@ bash scripts/install-generic.sh <prefix> <config-path>
 当 hivequeen 发布新版本时，用以下命令把协议层同步到你的私有母体：
 
 ```bash
-bash ~/my-queen/scripts/update.sh
+bash ~/my-queen/scripts/maintenance/update.sh
 ```
 
 只更新 `scripts/`、`AGENTS.md`、`CLAUDE.md`、`SOUL.md` 和文档。

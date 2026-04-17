@@ -1,10 +1,10 @@
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # hivequeen x Claude Code installer (Windows)
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 $ErrorActionPreference = "Stop"
 
-$HivequeenPath = (Resolve-Path "$PSScriptRoot\..").Path
+$HivequeenPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $ClaudeDir     = "$env:USERPROFILE\.claude"
 $Settings      = "$ClaudeDir\settings.json"
 $IdFile        = "$env:USERPROFILE\.hivequeen_id"
@@ -31,7 +31,7 @@ New-Item -ItemType Directory -Force -Path $AgentDir | Out-Null
 $MemoryFile = "$AgentDir\memory.md"
 if (-not (Test-Path $MemoryFile)) {
     @"
-# MEMORY — $AgentId
+# MEMORY -- $AgentId
 
 > Private memory for this agent instance.
 > Only $AgentId writes here.
@@ -49,12 +49,12 @@ foreach ($Cand in @("python3", "python", "py")) {
     if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
 }
 if (-not $PythonCmd) {
-    throw "python3 (or python / py) not found — required by hivequeen installer"
+    throw "python3 (or python / py) not found -- required by hivequeen installer"
 }
 
 # 2. Inject hivequeen bootstrap into global CLAUDE.md (preserves user content).
 New-Item -ItemType Directory -Force -Path $ClaudeDir | Out-Null
-& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-bootstrap.py") `
+& $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
     "$ClaudeDir\CLAUDE.md" $HivequeenPath $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "CLAUDE.md bootstrap injection failed (exit $LASTEXITCODE)"
@@ -65,7 +65,7 @@ if ($LASTEXITCODE -ne 0) {
 if (-not (Test-Path $Settings)) {
     '{}' | Set-Content -Path $Settings -Encoding UTF8
 }
-& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-hooks.py") `
+& $PythonCmd (Join-Path $HivequeenPath "scripts\install\_hooks.py") `
     $Settings $HivequeenPath $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "hook installation failed (exit $LASTEXITCODE)"

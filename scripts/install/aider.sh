@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-# ─────────────────────────────────────────────────────────────────────────────
-# hivequeen × Aider installer
+# -----------------------------------------------------------------------------
+# hivequeen x Aider installer
 #
 # Aider doesn't auto-load a single global "instructions" file the way Claude
 # Code or Gemini CLI do. Instead it takes a YAML config (~/.aider.conf.yml)
@@ -14,19 +14,19 @@ set -e
 #   - Write the hivequeen bootstrap into ~/.aider-hivequeen.md (via the
 #     generic bootstrap helper, so the marker-block preservation still works)
 #   - Print instructions for three ways to wire it into the user's aider
-#     workflow — we do NOT silently mutate ~/.aider.conf.yml because the
+#     workflow -- we do NOT silently mutate ~/.aider.conf.yml because the
 #     user may already have their own `read:` entries and yaml merging from
 #     shell is fragile
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BOOTSTRAP_FILE="$HOME/.aider-hivequeen.md"
 
-bash "$HIVEQUEEN_PATH/scripts/install-generic.sh" aider "$BOOTSTRAP_FILE"
+bash "$HIVEQUEEN_PATH/scripts/install/generic.sh" aider "$BOOTSTRAP_FILE"
 
 cat <<INSTRUCTIONS
 
-ℹ Aider has no global prompt file — wire the bootstrap in one of 3 ways:
+[i] Aider has no global prompt file -- wire the bootstrap in one of 3 ways:
 
   1. Add to ~/.aider.conf.yml:
        read:

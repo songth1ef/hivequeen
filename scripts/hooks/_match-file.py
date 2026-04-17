@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # hivequeen hook helper: file-path matcher
 #
 # Reads Claude Code hook JSON from stdin (with tool_input.file_path), and
 # compares it to <hivequeen>/agents/<agent-id>/. Exit 0 on match, 1 otherwise.
 #
-# Invoked by hook-hivequeen.sh — kept in a separate file so bash can forward
+# Invoked by hook-hivequeen.sh -- kept in a separate file so bash can forward
 # stdin to python without heredoc collisions.
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 import json
 import os

@@ -1,10 +1,10 @@
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 # hivequeen x Codex installer (Windows)
-# ─────────────────────────────────────────────
+# ---------------------------------------------
 
 $ErrorActionPreference = "Stop"
 
-$HivequeenPath = (Resolve-Path "$PSScriptRoot\..").Path
+$HivequeenPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $CodexDir = "$env:USERPROFILE\.codex"
 $Settings = "$CodexDir\config.json"
 $AgentId = "codex-$env:COMPUTERNAME".ToLower()
@@ -18,7 +18,7 @@ New-Item -ItemType Directory -Force -Path $AgentDir | Out-Null
 $MemoryFile = "$AgentDir\memory.md"
 if (-not (Test-Path $MemoryFile)) {
     @"
-# MEMORY — $AgentId
+# MEMORY -- $AgentId
 
 > Private memory for this agent instance.
 > Only $AgentId writes here.
@@ -38,10 +38,10 @@ foreach ($Cand in @("python3", "python", "py")) {
     if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
 }
 if (-not $PythonCmd) {
-    throw "python3 (or python / py) not found — required by hivequeen installer"
+    throw "python3 (or python / py) not found -- required by hivequeen installer"
 }
 
-& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-bootstrap.py") `
+& $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
     "$CodexDir\instructions.md" $HivequeenPath $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "Codex instructions bootstrap injection failed (exit $LASTEXITCODE)"

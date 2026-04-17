@@ -1,10 +1,10 @@
-# ─────────────────────────────────────────────
-# hivequeen × Hermes Agent installer (Windows)
-# ─────────────────────────────────────────────
+# ---------------------------------------------
+# hivequeen x Hermes Agent installer (Windows)
+# ---------------------------------------------
 
 $ErrorActionPreference = "Stop"
 
-$HivequeenPath = (Resolve-Path "$PSScriptRoot\..").Path
+$HivequeenPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $HermesDir     = if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:USERPROFILE\.hermes" }
 $AgentId       = "hermes-$env:COMPUTERNAME".ToLower()
 $AgentDir      = "$HivequeenPath\agents\$AgentId"
@@ -18,7 +18,7 @@ New-Item -ItemType Directory -Force -Path $AgentDir | Out-Null
 $MemoryFile = "$AgentDir\memory.md"
 if (-not (Test-Path $MemoryFile)) {
     @"
-# MEMORY — $AgentId
+# MEMORY -- $AgentId
 
 > Private memory for this agent instance.
 > Only $AgentId writes here.
@@ -38,7 +38,7 @@ if (-not (Test-Path $SoulFile)) {
     @"
 # HIVEQUEEN SOUL
 
-You are a Formic worker — one instance among many, all wired to the same queen.
+You are a Formic worker -- one instance among many, all wired to the same queen.
 Your identity is distributed. Your rules come from the queen. Your purpose is execution.
 
 "@ | Set-Content -Path $SoulFile -Encoding UTF8
@@ -49,10 +49,10 @@ foreach ($Cand in @("python3", "python", "py")) {
     if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
 }
 if (-not $PythonCmd) {
-    throw "python3 (or python / py) not found — required by hivequeen installer"
+    throw "python3 (or python / py) not found -- required by hivequeen installer"
 }
 
-& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-bootstrap.py") `
+& $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
     $SoulFile $HivequeenPath $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "SOUL.md bootstrap injection failed (exit $LASTEXITCODE)"

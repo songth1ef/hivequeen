@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # hivequeen bootstrap injector (shared by install-claude / install-gemini / ...)
 #
 # Idempotently writes a hivequeen startup protocol block into a tool-specific
@@ -8,13 +8,13 @@
 # re-installs and upstream protocol bumps.
 #
 # Behaviour:
-#   - File does not exist          → create with just the hivequeen block
-#   - File exists, no markers      → append block after existing content
-#   - File exists, markers present → replace content between markers only
+#   - File does not exist          -> create with just the hivequeen block
+#   - File exists, no markers      -> append block after existing content
+#   - File exists, markers present -> replace content between markers only
 #
 # Usage:
 #   _install-bootstrap.py <output_md> <hivequeen_path> <agent_id>
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 import os
 import re
@@ -41,14 +41,14 @@ Then load context from hivequeen in this order:
 4. `{hp}/agents/{aid}/memory.md`
 5. Relevant `{hp}/projects/*.md` for current task
 
-## After loading — self-direct, do not ask
+## After loading -- self-direct, do not ask
 
 You have enough signal to pick a next action without user prompting.
 Before your first reply:
 
-1. `git -C {hp} log --oneline -10 -- agents/` — recent activity across
+1. `git -C {hp} log --oneline -10 -- agents/` -- recent activity across
    every instance
-2. `git -C {hp} log --oneline -5` — recent protocol / shared changes
+2. `git -C {hp} log --oneline -5` -- recent protocol / shared changes
 3. Cross-reference with `queen/strategy.md` **Current Priorities** and
    the latest entries in `shared/memory.md` / `agents/{aid}/memory.md`
 
@@ -58,7 +58,7 @@ the next action (plus a short alternative if meaningful).
 
 FORBIDDEN first replies: "What would you like me to do?" / "How can I
 help?" / "Tell me what to do." Only if every source above is empty may
-you ask — and you must state that you checked and found nothing.
+you ask -- and you must state that you checked and found nothing.
 
 ## Write protocol
 
@@ -107,7 +107,7 @@ def main() -> int:
         # Replace only the marker block; keep user content outside intact.
         new_content = marker_pattern.sub(block.strip(), existing)
     elif existing.strip():
-        # User already has unrelated content — append the block after it.
+        # User already has unrelated content -- append the block after it.
         new_content = existing.rstrip() + "\n\n" + block
     else:
         new_content = block

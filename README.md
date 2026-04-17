@@ -51,66 +51,66 @@ git clone git@github.com:<you>/hivequeen.git ~/hivequeen
 
 **Claude Code (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install-claude.sh
+bash ~/hivequeen/scripts/install/claude.sh
 ```
 
 **Claude Code (Windows)**
 ```powershell
-.\hivequeen\scripts\install-claude.ps1
+.\hivequeen\scripts\install\claude.ps1
 ```
 
 **Codex (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install-codex.sh
+bash ~/hivequeen/scripts/install/codex.sh
 ```
 
 **Codex (Windows)**
 ```powershell
-.\hivequeen\scripts\install-codex.ps1
+.\hivequeen\scripts\install\codex.ps1
 ```
 
 **OpenClaw (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install-openclaw.sh
+bash ~/hivequeen/scripts/install/openclaw.sh
 ```
 
 **OpenClaw (Windows)**
 ```powershell
-.\hivequeen\scripts\install-openclaw.ps1
+.\hivequeen\scripts\install\openclaw.ps1
 ```
 
 **Hermes Agent (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install-hermes.sh
+bash ~/hivequeen/scripts/install/hermes.sh
 ```
 
 **Hermes Agent (Windows)**
 ```powershell
-.\hivequeen\scripts\install-hermes.ps1
+.\hivequeen\scripts\install\hermes.ps1
 ```
 
 **Gemini CLI (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install-gemini.sh
+bash ~/hivequeen/scripts/install/gemini.sh
 ```
 
 **Gemini CLI (Windows)**
 ```powershell
-.\hivequeen\scripts\install-gemini.ps1
+.\hivequeen\scripts\install\gemini.ps1
 ```
 
 **Aider (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install-aider.sh
+bash ~/hivequeen/scripts/install/aider.sh
 ```
 
 **Aider (Windows)**
 ```powershell
-.\hivequeen\scripts\install-aider.ps1
+.\hivequeen\scripts\install\aider.ps1
 ```
 
 **Any other markdown-config CLI** (Qwen Code, OpenCode, Trae, Kimi Code, …) — see
-[Supported tools](#supported-tools) and `install-generic.sh`.
+[Supported tools](#supported-tools) and `install/generic.sh`.
 
 Repeat on every machine. Same fork, different agent IDs, one shared brain.
 
@@ -134,7 +134,7 @@ Add `projects/<project-name>.md` — context loaded when working on that project
 After agents have accumulated memory, compile it into `shared/memory.md`:
 
 ```bash
-bash ~/hivequeen/scripts/compile.sh
+bash ~/hivequeen/scripts/maintenance/compile.sh
 ```
 
 This aggregates all `agents/*/memory.md` files and pushes the result.
@@ -160,12 +160,23 @@ hivequeen/
 ├── projects/
 │   └── <project>.md            per-project context
 └── scripts/
-    ├── install-claude.sh / .ps1
-    ├── install-codex.sh  / .ps1
-    ├── install-openclaw.sh / .ps1
-    ├── install-hermes.sh / .ps1
-    ├── compile.sh
-    └── update.sh
+    ├── install/                   per-tool installers
+    │   ├── claude.{sh,ps1}
+    │   ├── codex.{sh,ps1}
+    │   ├── gemini.{sh,ps1}
+    │   ├── hermes.{sh,ps1}
+    │   ├── openclaw.{sh,ps1}
+    │   ├── aider.{sh,ps1}         (yaml wiring, not marker block)
+    │   ├── generic.{sh,ps1}       any markdown-config CLI
+    │   ├── _bootstrap.py          shared bootstrap injector
+    │   └── _hooks.py              shared hook registrar (Claude Code)
+    ├── hooks/                     runtime hooks
+    │   ├── hivequeen.sh           pre/post/stop entry
+    │   ├── _match-file.py         stdin-based file matcher
+    │   └── export-claude-mem.sh   optional claude-mem bridge
+    └── maintenance/               ops
+        ├── compile.sh             aggregate agents/* into shared/
+        └── update.sh              pull upstream protocol layer
 ```
 
 ---
@@ -223,25 +234,25 @@ Each agent owns exactly one directory under `agents/`. No two agents ever write 
 
 | Tool | Vendor | Entry file | Install |
 |---|---|---|---|
-| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install-claude.sh` |
-| Codex CLI | OpenAI | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
-| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install-gemini.sh` |
-| OpenClaw | open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
-| Hermes Agent | open source | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
-| Aider | open source | `~/.aider-hivequeen.md` (wired via `.aider.conf.yml` `read:`) | `bash scripts/install-aider.sh` |
+| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` |
+| Codex CLI | OpenAI | `~/.codex/instructions.md` | `bash scripts/install/codex.sh` |
+| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` |
+| OpenClaw | open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` |
+| Hermes Agent | open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` |
+| Aider | open source | `~/.aider-hivequeen.md` (wired via `.aider.conf.yml` `read:`) | `bash scripts/install/aider.sh` |
 
 Only Claude Code registers session hooks for atomic per-write memory sync.
 Other tools follow the session-end commit protocol written into their
 bootstrap config.
 
-### Via `install-generic.sh` (you confirm the config path)
+### Via `install/generic.sh` (you confirm the config path)
 
 Any CLI that loads a single markdown file at startup as its system prompt
 can be bootstrapped in one line. Confirm the tool's instruction-file path
 (usually `--help` or its docs), then:
 
 ```bash
-bash scripts/install-generic.sh <prefix> <config-path>
+bash scripts/install/generic.sh <prefix> <config-path>
 ```
 
 Examples — paths are illustrative, verify before running:
@@ -258,7 +269,7 @@ Examples — paths are illustrative, verify before running:
 | 通义灵码 CLI | Alibaba Cloud | `lingma` |
 
 > **Tip**: Qwen Code is a Gemini CLI fork and may also honour
-> `~/.gemini/GEMINI.md` out of the box — try `install-gemini.sh` first.
+> `~/.gemini/GEMINI.md` out of the box — try `install/gemini.sh` first.
 
 ### Workspace-level (IDE plugins, symlink)
 
@@ -280,7 +291,7 @@ Examples — paths are illustrative, verify before running:
 
 ---
 
-## Adding a new tool via `install-generic.sh`
+## Adding a new tool via `install/generic.sh`
 
 For any CLI whose startup loads a single markdown file as its system prompt:
 
@@ -289,7 +300,7 @@ For any CLI whose startup loads a single markdown file as its system prompt:
 3. Run:
 
 ```bash
-bash scripts/install-generic.sh <prefix> <config-path>
+bash scripts/install/generic.sh <prefix> <config-path>
 ```
 
 This:
@@ -307,7 +318,7 @@ This:
 When hivequeen ships improvements, pull only the protocol layer into your private queen:
 
 ```bash
-bash ~/my-queen/scripts/update.sh
+bash ~/my-queen/scripts/maintenance/update.sh
 ```
 
 This updates `scripts/`, `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, and docs.

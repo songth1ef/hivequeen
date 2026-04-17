@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # hivequeen hook installer (shared by install-claude.sh and install-claude.ps1)
 #
 # Merges PreToolUse / PostToolUse / Stop hooks into Claude Code settings.json.
@@ -11,7 +11,7 @@
 # Why a separate script: PowerShell's ConvertTo-Json mishandles single-element
 # nested arrays (serializes them as objects), and repeating the merge logic in
 # two shells invites drift. Centralising in Python keeps behaviour identical.
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 import json
 import os
@@ -19,9 +19,15 @@ import sys
 
 
 def is_hivequeen_hook(cmd: str, agent_id: str) -> bool:
-    """Return True if a stored hook command was installed by hivequeen."""
+    """Return True if a stored hook command was installed by hivequeen.
+
+    Matches both the legacy flat layout (scripts/hook-hivequeen.sh) and the
+    new subdir layout (scripts/hooks/hivequeen.sh) so re-running the
+    installer cleanly supersedes either.
+    """
     return (
         "hook-hivequeen.sh" in cmd
+        or "hooks/hivequeen.sh" in cmd
         or "export-claude-mem.sh" in cmd
         or f"memory: update {agent_id}" in cmd
         or (agent_id in cmd and "git push" in cmd)
@@ -54,8 +60,8 @@ def main() -> int:
     hivequeen_path = sys.argv[2].replace("\\", "/").rstrip("/")
     agent_id       = sys.argv[3]
 
-    hook_script = f"{hivequeen_path}/scripts/hook-hivequeen.sh"
-    export_mem  = f"{hivequeen_path}/scripts/export-claude-mem.sh"
+    hook_script = f"{hivequeen_path}/scripts/hooks/hivequeen.sh"
+    export_mem  = f"{hivequeen_path}/scripts/hooks/export-claude-mem.sh"
 
     pre_cmd  = f"bash {hook_script} pre {agent_id}"
     post_cmd = f"bash {hook_script} post {agent_id}"

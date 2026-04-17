@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
-# ─────────────────────────────────────────────────────────────────────────────
-# hivequeen × claude-mem exporter
+# -----------------------------------------------------------------------------
+# hivequeen x claude-mem exporter
 #
 # Fetches today's observations from claude-mem's HTTP API and writes a digest
 # to agents/<id>/claude-mem-digest.md so hivequeen can sync it across machines.
 #
 # Called automatically during Session End (registered by install-claude.sh).
-# Exits cleanly if claude-mem is not running — never blocks the main hook.
-# ─────────────────────────────────────────────────────────────────────────────
+# Exits cleanly if claude-mem is not running -- never blocks the main hook.
+# -----------------------------------------------------------------------------
 
 set -euo pipefail
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
 AGENT_ID="${HIVEQUEEN_AGENT_ID:-claude-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')}"
 OUTPUT_FILE="$HIVEQUEEN_PATH/agents/$AGENT_ID/claude-mem-digest.md"
 WORKER_URL="${CLAUDE_MEM_URL:-http://localhost:37777}"
 
-# ── 1. Guard: skip silently if claude-mem worker is not running ───────────────
+# -- 1. Guard: skip silently if claude-mem worker is not running ---------------
 if ! curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
-  echo "⚠  claude-mem not running at $WORKER_URL — skipping export"
+  echo "[!]  claude-mem not running at $WORKER_URL -- skipping export"
   exit 0
 fi
 
-# ── 2. Fetch today's observations ─────────────────────────────────────────────
+# -- 2. Fetch today's observations ---------------------------------------------
 TODAY=$(date +%Y-%m-%d)
 
 DIGEST=$(python3 - <<PYEOF
@@ -72,16 +72,16 @@ PYEOF
 )
 
 if [ -z "$DIGEST" ]; then
-  echo "⚠  claude-mem returned empty digest for $TODAY — skipping"
+  echo "[!]  claude-mem returned empty digest for $TODAY -- skipping"
   exit 0
 fi
 
-# ── 3. Write digest file ──────────────────────────────────────────────────────
+# -- 3. Write digest file ------------------------------------------------------
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 NOW=$(date -u +"%Y-%m-%d %H:%M UTC")
 
 cat > "$OUTPUT_FILE" <<MDEOF
-# claude-mem digest — $AGENT_ID
+# claude-mem digest -- $AGENT_ID
 
 > Exported: $NOW
 > Source: claude-mem @ $WORKER_URL
@@ -92,4 +92,4 @@ cat > "$OUTPUT_FILE" <<MDEOF
 $DIGEST
 MDEOF
 
-echo "✓ claude-mem digest → $OUTPUT_FILE"
+echo "[ok] claude-mem digest -> $OUTPUT_FILE"
