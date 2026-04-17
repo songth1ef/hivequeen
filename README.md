@@ -2,21 +2,21 @@
 
 [中文](README.zh.md) | English
 
-Fork it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git.
+Template it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git.
 
 ---
 
 ## How it works
 
 ```
-hivequeen repo (your fork)
+hivequeen repo (your private queen)
 ├── queen/          ← read-only rules & strategy (you write this)
 ├── agents/         ← each agent writes ONLY to its own directory
 ├── shared/         ← compiled memory across all agents (read-only)
 └── projects/       ← per-project context files
 ```
 
-Every machine that clones your fork gets the same brain.
+Every machine that clones your queen gets the same brain.
 Every agent instance writes only to its own `agents/<agent-id>/` directory — no conflicts, ever.
 
 ```
@@ -112,7 +112,7 @@ bash ~/hivequeen/scripts/install/aider.sh
 **Any other markdown-config CLI** (Qwen Code, OpenCode, Trae, Kimi Code, …) — see
 [Supported tools](#supported-tools) and `install/generic.sh`.
 
-Repeat on every machine. Same fork, different agent IDs, one shared brain.
+Repeat on every machine. Same queen, different agent IDs, one shared brain.
 
 ---
 

@@ -2,21 +2,21 @@
 
 [English](README.md) | 中文
 
-fork 即继承，clone 即连接，所有 agent 共用同一个大脑。git 原生记忆协议，无需插件，无需服务器。
+模板即继承，clone 即连接，所有 agent 共用同一个大脑。git 原生记忆协议，无需插件，无需服务器。
 
 ---
 
 ## 工作原理
 
 ```
-hivequeen 仓库（你的 fork）
+hivequeen 仓库（你的私有母体）
 ├── queen/          ← 只读规则与策略（由你维护）
 ├── agents/         ← 每个 agent 只写自己的目录
 ├── shared/         ← 所有 agent 的编译记忆（只读）
 └── projects/       ← 项目上下文文件
 ```
 
-每台 clone 了你 fork 的机器都共享同一个大脑。
+每台 clone 了你的母体的机器都共享同一个大脑。
 每个 agent 实例只写自己的 `agents/<agent-id>/` 目录——永远不会产生冲突。
 
 ```
@@ -111,7 +111,7 @@ bash ~/hivequeen/scripts/install/aider.sh
 **其他 markdown-config 类 CLI**（Qwen Code、OpenCode、Trae、Kimi Code 等）——
 见 [支持的工具](#支持的工具) 与 `install/generic.sh`。
 
-每台机器都执行一次。相同的 fork，不同的 agent ID，共享同一个大脑。
+每台机器都执行一次。同一个母体，不同的 agent ID，共享同一个大脑。
 
 ---
 
