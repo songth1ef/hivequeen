@@ -2,7 +2,7 @@
 
 [中文](README.zh.md) | English
 
-Fork it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git. // fork 即继承，clone 即连接，所有 agent 共用同一个大脑。git 原生记忆协议，无需插件，无需服务器。
+Fork it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git.
 
 ---
 
@@ -131,14 +131,20 @@ Add `projects/<project-name>.md` — context loaded when working on that project
 
 ## Compile shared memory
 
-After agents have accumulated memory, compile it into `shared/memory.md`:
+After agents have accumulated memory, merge it into `shared/memory.md`
+using one of two strategies:
 
 ```bash
+# Mechanical: concatenate every agents/*/memory.md, commit, push.
 bash ~/hivequeen/scripts/maintenance/compile.sh
+
+# LLM-oriented: print a distillation prompt. Feed the output to any
+# agent session, then commit the agent's merged shared/memory.md.
+python3 ~/hivequeen/scripts/maintenance/distill.py
 ```
 
-This aggregates all `agents/*/memory.md` files and pushes the result.
-All agents will pick it up on their next `git pull`.
+Both variants leave the input agent memories untouched. All agents pick
+the new `shared/memory.md` up on their next `git pull`.
 
 ---
 
@@ -146,9 +152,9 @@ All agents will pick it up on their next `git pull`.
 
 ```
 hivequeen/
-├── AGENTS.md                   universal bootstrap (Codex, OpenClaw, others)
-├── CLAUDE.md                   bootstrap for Claude Code
-├── SOUL.md                     personality file (OpenClaw, Hermes)
+├── AGENTS.md                   bootstrap source of truth (Codex, OpenClaw, Gemini, ...)
+├── CLAUDE.md                   verbatim mirror of AGENTS.md (Claude Code loads this name)
+├── SOUL.md                     short persona file (Hermes entry point)
 ├── queen/
 │   ├── agent-rules.md          behavior rules — read-only for agents
 │   └── strategy.md             decision direction — read-only for agents
@@ -177,6 +183,7 @@ hivequeen/
     └── maintenance/               ops
         ├── compile.sh             aggregate agents/* into shared/ (mechanical)
         ├── distill.py             LLM-oriented variant: print a merge prompt
+        ├── sync-claude-md.sh      regenerate CLAUDE.md from AGENTS.md
         └── update.sh              pull upstream protocol layer
 ```
 
@@ -316,14 +323,28 @@ This:
 
 ## Staying up to date
 
-When hivequeen ships improvements, pull only the protocol layer into your private queen:
+Two paths — both keep your private data (`agents/`, `queen/`,
+`shared/`, `projects/`) untouched.
+
+### Automatic (recommended)
+
+The `.github/workflows/sync-upstream.yml` in your queen runs daily at
+03:00 UTC (and on manual **Run workflow**), compares the protocol
+layer against the upstream template, and opens a PR to your `main`
+when upstream drifts. You review the diff and merge.
+
+GitHub blocks `GITHUB_TOKEN` from pushing workflow-file changes, so
+`.github/workflows/` is **not** touched by the CI path — use the
+manual path below for workflow updates.
+
+### Manual
 
 ```bash
 bash ~/my-queen/scripts/maintenance/update.sh
 ```
 
-This updates `scripts/`, `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, and docs.
-It **never touches** `agents/`, `queen/`, `shared/`, or `projects/` — those are yours.
+Covers `scripts/`, `.github/workflows/`, `AGENTS.md`, `CLAUDE.md`,
+`SOUL.md`, and the READMEs.
 
 ---
 

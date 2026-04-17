@@ -1,6 +1,6 @@
 # hivequeen
 
-English | [中文](README.zh.md)
+[English](README.md) | 中文
 
 fork 即继承，clone 即连接，所有 agent 共用同一个大脑。git 原生记忆协议，无需插件，无需服务器。
 
@@ -130,14 +130,19 @@ bash ~/hivequeen/scripts/install/aider.sh
 
 ## 编译共享记忆
 
-当各 agent 积累了足够记忆后，将其编译到 `shared/memory.md`：
+当各 agent 积累了足够记忆后，用下面两种方式之一合入 `shared/memory.md`：
 
 ```bash
+# 纯拼接：把 agents/*/memory.md 拼接，commit，push
 bash ~/hivequeen/scripts/maintenance/compile.sh
+
+# LLM 版：打印一段蒸馏 prompt，喂给任一 agent 会话，
+# 让 agent 输出合并后的 shared/memory.md 再提交
+python3 ~/hivequeen/scripts/maintenance/distill.py
 ```
 
-脚本聚合所有 `agents/*/memory.md` 并推送结果。
-所有 agent 在下次 `git pull` 时自动同步。
+两种方式都不会修改原始的 agent memory。所有 agent 在下次 `git pull`
+时自动看到新的 `shared/memory.md`。
 
 ---
 
@@ -145,9 +150,9 @@ bash ~/hivequeen/scripts/maintenance/compile.sh
 
 ```
 hivequeen/
-├── AGENTS.md                   通用 bootstrap（Codex、OpenClaw 等）
-├── CLAUDE.md                   Claude Code 专用 bootstrap
-├── SOUL.md                     人格文件（OpenClaw、Hermes 读取）
+├── AGENTS.md                   bootstrap 唯一来源（Codex、OpenClaw、Gemini 等）
+├── CLAUDE.md                   AGENTS.md 的逐行镜像（Claude Code 认这个名字）
+├── SOUL.md                     Hermes 的简短人格文件
 ├── queen/
 │   ├── agent-rules.md          行为规则 — agent 只读
 │   └── strategy.md             决策方向 — agent 只读
@@ -176,6 +181,7 @@ hivequeen/
     └── maintenance/               运维
         ├── compile.sh             聚合 agents/* 到 shared/（纯拼接）
         ├── distill.py             LLM 版：打印记忆蒸馏 prompt
+        ├── sync-claude-md.sh      从 AGENTS.md 重新生成 CLAUDE.md
         └── update.sh              拉取 upstream 协议层
 ```
 
@@ -312,14 +318,25 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 ## 跟踪上游更新
 
-当 hivequeen 发布新版本时，用以下命令把协议层同步到你的私有母体：
+两条路径，都不碰你的私有数据（`agents/`、`queen/`、`shared/`、`projects/`）。
+
+### 自动（推荐）
+
+你私有仓库里的 `.github/workflows/sync-upstream.yml` 每天 03:00 UTC
+运行一次（也可手动 **Run workflow**），对比协议层与 upstream 模板，
+发现差异就开 PR 到你的 `main`。你 review diff 后合并。
+
+GitHub 禁止 `GITHUB_TOKEN` push 修改 workflow 文件的 commit，所以 CI
+路径**不覆盖** `.github/workflows/`，workflow 变更要走下面的手动路径。
+
+### 手动
 
 ```bash
 bash ~/my-queen/scripts/maintenance/update.sh
 ```
 
-只更新 `scripts/`、`AGENTS.md`、`CLAUDE.md`、`SOUL.md` 和文档。
-**永远不会碰** `agents/`、`queen/`、`shared/`、`projects/` — 那些是你的。
+覆盖 `scripts/`、`.github/workflows/`、`AGENTS.md`、`CLAUDE.md`、
+`SOUL.md` 和双语 README。
 
 ---
 

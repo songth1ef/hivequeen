@@ -1,3 +1,18 @@
+<!--
+  This file is a verbatim mirror of AGENTS.md.
+
+  Two real files exist because Claude Code loads CLAUDE.md and
+  Codex / OpenClaw / etc. load AGENTS.md, and Windows clones without
+  symlink support were receiving a broken 9-byte text file when this
+  was a symlink.
+
+  Edit AGENTS.md as the source of truth, then run:
+
+      bash scripts/maintenance/sync-claude-md.sh
+
+  to regenerate CLAUDE.md. Drift between the two files is a bug.
+-->
+
 # HIVEQUEEN BOOTSTRAP
 
 <!-- protocol-version: 1.0 -->
