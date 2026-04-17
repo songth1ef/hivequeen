@@ -1,0 +1,105 @@
+name: Sync hivequeen upstream
+
+# Automated protocol-layer sync for private myhivequeen instances.
+#
+# Opens a PR on your myhivequeen repo whenever the upstream template at
+# songth1ef/hivequeen ships changes to scripts/, AGENTS.md, CLAUDE.md, SOUL.md
+# or READMEs. Never touches queen/, agents/, shared/, or projects/.
+#
+# The bot keeps a single long-lived branch `sync/upstream`. Same-day reruns
+# update the branch in place; the PR stays open until merged.
+#
+# Review the diff before merging — this is your escape valve if upstream
+# ships a breaking protocol change.
+
+on:
+  schedule:
+    - cron: '0 3 * * *'      # 03:00 UTC daily
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM_URL: https://github.com/songth1ef/hivequeen.git
+      UPSTREAM_BRANCH: main
+      SYNC_BRANCH: sync/upstream
+      # keep this list in sync with scripts/update.sh
+      PROTOCOL_PATHS: scripts/ AGENTS.md CLAUDE.md SOUL.md README.md README.zh.md
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "hivequeen-bot"
+          git config user.email "hivequeen-bot@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "$UPSTREAM_URL" 2>/dev/null || \
+            git remote set-url upstream "$UPSTREAM_URL"
+          git fetch upstream "$UPSTREAM_BRANCH"
+
+      - name: Detect protocol-layer drift
+        id: drift
+        run: |
+          if git diff HEAD upstream/"$UPSTREAM_BRANCH" --quiet -- $PROTOCOL_PATHS; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Close stale sync PR if in sync
+        if: steps.drift.outputs.has_changes == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OPEN_PRS=$(gh pr list --head "$SYNC_BRANCH" --state open --json number -q '.[].number')
+          for n in $OPEN_PRS; do
+            gh pr close "$n" --comment "Protocol layer is now in sync with upstream — closing."
+          done
+          git push origin --delete "$SYNC_BRANCH" 2>/dev/null || true
+
+      - name: Prepare sync branch
+        if: steps.drift.outputs.has_changes == 'true'
+        run: |
+          git checkout -B "$SYNC_BRANCH" origin/main
+          git checkout upstream/"$UPSTREAM_BRANCH" -- $PROTOCOL_PATHS
+          if git diff --cached --quiet; then
+            echo "No staged delta after checkout — bailing out cleanly."
+            exit 0
+          fi
+          git commit -m "chore: sync hivequeen protocol from upstream"
+          git push origin "$SYNC_BRANCH" --force
+
+      - name: Open or update PR
+        if: steps.drift.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING=$(gh pr list --head "$SYNC_BRANCH" --state open --json number -q '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING already open — branch updated in place."
+            exit 0
+          fi
+          gh pr create \
+            --base main \
+            --head "$SYNC_BRANCH" \
+            --title "chore: sync hivequeen upstream" \
+            --body "Automated protocol-layer sync from upstream ($UPSTREAM_URL).
+
+**Scope** — protocol files only:
+
+\`\`\`
+$PROTOCOL_PATHS
+\`\`\`
+
+**Untouched**: \`queen/\`, \`agents/\`, \`shared/\`, \`projects/\` — those remain private.
+
+Review the diff and merge when it looks good. If upstream ships something you do not want, close this PR; the bot will reopen only when upstream changes again."
