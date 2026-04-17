@@ -88,6 +88,16 @@ bash ~/hivequeen/scripts/install-hermes.sh
 .\hivequeen\scripts\install-hermes.ps1
 ```
 
+**Gemini CLI（macOS / Linux）**
+```bash
+bash ~/hivequeen/scripts/install-gemini.sh
+```
+
+**Gemini CLI（Windows）**
+```powershell
+.\hivequeen\scripts\install-gemini.ps1
+```
+
 每台机器都执行一次。相同的 fork，不同的 agent ID，共享同一个大脑。
 
 ---
@@ -201,7 +211,7 @@ agent 先读索引，按需跟进相关 topic 文件。
 | Codex | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
 | OpenClaw | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
 | Hermes Agent | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
-| Gemini CLI | `GEMINI.md` | `ln -s AGENTS.md GEMINI.md` |
+| Gemini CLI | `~/.gemini/GEMINI.md` | `bash scripts/install-gemini.sh` |
 | Cursor | `.cursor/rules/` | 添加软链接 |
 | Windsurf | `.windsurf/rules/` | 添加软链接 |
 | Cline | `.clinerules/` | 添加软链接 |

@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+# ─────────────────────────────────────────────────────────────────────────────
+# hivequeen bootstrap injector (shared by install-claude / install-gemini / ...)
+#
+# Idempotently writes a hivequeen startup protocol block into a tool-specific
+# markdown (e.g. ~/.claude/CLAUDE.md, ~/.gemini/GEMINI.md). Uses HTML-comment
+# markers so the user's own content in the same file is preserved across
+# re-installs and upstream protocol bumps.
+#
+# Behaviour:
+#   - File does not exist          → create with just the hivequeen block
+#   - File exists, no markers      → append block after existing content
+#   - File exists, markers present → replace content between markers only
+#
+# Usage:
+#   _install-bootstrap.py <output_md> <hivequeen_path> <agent_id>
+# ─────────────────────────────────────────────────────────────────────────────
+
+import os
+import re
+import sys
+
+BEGIN = "<!-- hivequeen:begin -->"
+END   = "<!-- hivequeen:end -->"
+
+BLOCK_TEMPLATE = """\
+{begin}
+# Hivequeen Startup Protocol
+
+Before starting analysis, planning, or implementation, run:
+
+```bash
+git -C {hp} pull --rebase
+```
+
+Then load context from hivequeen in this order:
+
+1. `{hp}/queen/agent-rules.md`
+2. `{hp}/queen/strategy.md`
+3. `{hp}/shared/memory.md`
+4. `{hp}/agents/{aid}/memory.md`
+5. Relevant `{hp}/projects/*.md` for current task
+
+Write protocol: only write to `{hp}/agents/{aid}/`
+
+When the session ends and memory changed:
+
+```bash
+git -C {hp} add agents/{aid}/
+git -C {hp} diff --cached --quiet || git -C {hp} commit -m "memory: update {aid}"
+git -C {hp} push
+```
+
+See full protocol: `{hp}/AGENTS.md`
+{end}
+"""
+
+
+def main() -> int:
+    if len(sys.argv) < 4:
+        print(
+            "usage: _install-bootstrap.py <output_md> <hivequeen_path> <agent_id>",
+            file=sys.stderr,
+        )
+        return 2
+
+    out_path       = sys.argv[1]
+    hivequeen_path = sys.argv[2].replace("\\", "/").rstrip("/")
+    agent_id       = sys.argv[3]
+
+    block = BLOCK_TEMPLATE.format(begin=BEGIN, end=END, hp=hivequeen_path, aid=agent_id)
+
+    out_dir = os.path.dirname(out_path)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+
+    existing = ""
+    if os.path.exists(out_path):
+        with open(out_path, encoding="utf-8") as f:
+            existing = f.read()
+
+    marker_pattern = re.compile(
+        re.escape(BEGIN) + r".*?" + re.escape(END), re.DOTALL
+    )
+
+    if marker_pattern.search(existing):
+        # Replace only the marker block; keep user content outside intact.
+        new_content = marker_pattern.sub(block.strip(), existing)
+    elif existing.strip():
+        # User already has unrelated content — append the block after it.
+        new_content = existing.rstrip() + "\n\n" + block
+    else:
+        new_content = block
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(new_content)
+
+    mode = (
+        "updated block" if marker_pattern.search(existing)
+        else "appended block" if existing.strip()
+        else "created"
+    )
+    print(f"hivequeen bootstrap ({mode}) in {out_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

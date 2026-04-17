@@ -89,6 +89,16 @@ bash ~/hivequeen/scripts/install-hermes.sh
 .\hivequeen\scripts\install-hermes.ps1
 ```
 
+**Gemini CLI (macOS / Linux)**
+```bash
+bash ~/hivequeen/scripts/install-gemini.sh
+```
+
+**Gemini CLI (Windows)**
+```powershell
+.\hivequeen\scripts\install-gemini.ps1
+```
+
 Repeat on every machine. Same fork, different agent IDs, one shared brain.
 
 ---
@@ -202,7 +212,7 @@ Each agent owns exactly one directory under `agents/`. No two agents ever write 
 | Codex | `~/.codex/instructions.md` | `bash scripts/install-codex.sh` |
 | OpenClaw | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install-openclaw.sh` |
 | Hermes Agent | `~/.hermes/SOUL.md` | `bash scripts/install-hermes.sh` |
-| Gemini CLI | `GEMINI.md` | `ln -s AGENTS.md GEMINI.md` |
+| Gemini CLI | `~/.gemini/GEMINI.md` | `bash scripts/install-gemini.sh` |
 | Cursor | `.cursor/rules/` | add symlink |
 | Windsurf | `.windsurf/rules/` | add symlink |
 | Cline | `.clinerules/` | add symlink |

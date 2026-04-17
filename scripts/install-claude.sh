@@ -41,30 +41,11 @@ EOF
   echo "✓ created $AGENT_DIR/memory.md"
 fi
 
-# 2. Write global CLAUDE.md to bootstrap hivequeen
+# 2. Inject hivequeen bootstrap into global CLAUDE.md.
+#    Preserves any existing user content via HTML-comment marker block.
 mkdir -p "$CLAUDE_DIR"
-cat > "$CLAUDE_DIR/CLAUDE.md" <<EOF
-# Global Startup Protocol
-
-Before starting analysis, planning, or implementation, run:
-
-\`\`\`bash
-git -C $HIVEQUEEN_PATH pull --rebase
-\`\`\`
-
-Then load context from hivequeen in this order:
-
-1. \`$HIVEQUEEN_PATH/queen/agent-rules.md\`
-2. \`$HIVEQUEEN_PATH/queen/strategy.md\`
-3. \`$HIVEQUEEN_PATH/shared/memory.md\`
-4. \`$HIVEQUEEN_PATH/agents/$AGENT_ID/memory.md\`
-5. Relevant \`$HIVEQUEEN_PATH/projects/*.md\` for current task
-
-Write protocol: only write to \`$HIVEQUEEN_PATH/agents/$AGENT_ID/\`
-
-See full protocol: \`$HIVEQUEEN_PATH/AGENTS.md\`
-EOF
-echo "✓ wrote $CLAUDE_DIR/CLAUDE.md"
+python3 "$HIVEQUEEN_PATH/scripts/_install-bootstrap.py" \
+  "$CLAUDE_DIR/CLAUDE.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
 
 # 3. Register hooks: PreToolUse / PostToolUse / Stop
 #    Atomic per-write sync: pull before every memory Write/Edit,

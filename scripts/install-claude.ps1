@@ -43,47 +43,30 @@ _No memory yet._
     Write-Host "v created $MemoryFile"
 }
 
-# 2. Write global CLAUDE.md
-New-Item -ItemType Directory -Force -Path $ClaudeDir | Out-Null
-@"
-# Global Startup Protocol
-
-Before starting analysis, planning, or implementation, run:
-
-``````powershell
-git -C "$HivequeenPath" pull --rebase
-``````
-
-Then load context from hivequeen in this order:
-
-1. ``$HivequeenPath\queen\agent-rules.md``
-2. ``$HivequeenPath\queen\strategy.md``
-3. ``$HivequeenPath\shared\memory.md``
-4. ``$HivequeenPath\agents\$AgentId\memory.md``
-5. Relevant ``$HivequeenPath\projects\*.md`` for current task
-
-Write protocol: only write to ``$HivequeenPath\agents\$AgentId\``
-
-See full protocol: ``$HivequeenPath\AGENTS.md``
-"@ | Set-Content -Path "$ClaudeDir\CLAUDE.md" -Encoding UTF8
-Write-Host "v wrote $ClaudeDir\CLAUDE.md"
-
-# 3. Register hooks via shared Python helper (avoids PowerShell's
-#    ConvertTo-Json bug on nested single-element arrays).
-if (-not (Test-Path $Settings)) {
-    '{}' | Set-Content -Path $Settings -Encoding UTF8
-}
-
+# Python is required for the shared installer helpers
 $PythonCmd = $null
 foreach ($Cand in @("python3", "python", "py")) {
     if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
 }
 if (-not $PythonCmd) {
-    throw "python3 (or python / py) not found — required for hook registration"
+    throw "python3 (or python / py) not found — required by hivequeen installer"
 }
 
-$InstallerPy = Join-Path $HivequeenPath "scripts\_install-hooks.py"
-& $PythonCmd $InstallerPy $Settings $HivequeenPath $AgentId
+# 2. Inject hivequeen bootstrap into global CLAUDE.md (preserves user content).
+New-Item -ItemType Directory -Force -Path $ClaudeDir | Out-Null
+& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-bootstrap.py") `
+    "$ClaudeDir\CLAUDE.md" $HivequeenPath $AgentId
+if ($LASTEXITCODE -ne 0) {
+    throw "CLAUDE.md bootstrap injection failed (exit $LASTEXITCODE)"
+}
+
+# 3. Register Pre/Post/Stop hooks via shared Python helper
+#    (avoids PowerShell's ConvertTo-Json bug on nested single-element arrays).
+if (-not (Test-Path $Settings)) {
+    '{}' | Set-Content -Path $Settings -Encoding UTF8
+}
+& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-hooks.py") `
+    $Settings $HivequeenPath $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "hook installation failed (exit $LASTEXITCODE)"
 }
