@@ -7,11 +7,13 @@ set -e
 
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OPENCLAW_DIR="$HOME/.openclaw/workspace"
-HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
-AGENT_ID="openclaw-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
+IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" openclaw)"
+HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
+AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
+AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
 
 echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 echo "-> openclaw ws    : $OPENCLAW_DIR"
 
@@ -19,10 +21,10 @@ echo "-> openclaw ws    : $OPENCLAW_DIR"
 mkdir -p "$AGENT_DIR"
 if [ ! -f "$AGENT_DIR/memory.md" ]; then
   cat > "$AGENT_DIR/memory.md" <<EOF
-# MEMORY -- $AGENT_ID
+# MEMORY -- $HOST/$AGENT_ID
 
 > Private memory for this agent instance.
-> Only $AGENT_ID writes here.
+> Only $HOST/$AGENT_ID writes here.
 
 ---
 
@@ -36,7 +38,7 @@ mkdir -p "$OPENCLAW_DIR"
 
 # 3. Inject hivequeen bootstrap into AGENTS.md (marker-preserved).
 python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$OPENCLAW_DIR/AGENTS.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
+  "$OPENCLAW_DIR/AGENTS.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
 
 # 4. Symlink SOUL.md (no paths to interpolate -- symlink is safe)
 if [ ! -e "$OPENCLAW_DIR/SOUL.md" ]; then
@@ -48,6 +50,6 @@ fi
 
 echo ""
 echo "OK hivequeen installed for OpenClaw"
-echo "   agent  : $AGENT_ID"
+echo "   agent  : $HOST/$AGENT_ID"
 echo "   memory : $AGENT_DIR/memory.md"
 echo "   ws     : $OPENCLAW_DIR"

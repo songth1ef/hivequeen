@@ -20,13 +20,6 @@ $ErrorActionPreference = "Stop"
 
 $HivequeenPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $ConfigPath    = [Environment]::ExpandEnvironmentVariables($ConfigPath)
-$Host          = $env:COMPUTERNAME.ToLower()
-$AgentId       = "$Prefix-$Host"
-$AgentDir      = "$HivequeenPath\agents\$AgentId"
-
-Write-Host "-> hivequeen path : $HivequeenPath"
-Write-Host "-> agent id       : $AgentId"
-Write-Host "-> config target  : $ConfigPath"
 
 $PythonCmd = $null
 foreach ($Cand in @("python3", "python", "py")) {
@@ -36,15 +29,26 @@ if (-not $PythonCmd) {
     throw "python3 (or python / py) not found -- required by hivequeen installer"
 }
 
+$IdentityLines = & $PythonCmd (Join-Path $HivequeenPath "scripts\install\_identity.py") $Prefix
+if ($LASTEXITCODE -ne 0) { throw "identity resolver failed (exit $LASTEXITCODE)" }
+$HiveHost = $IdentityLines[0].Trim()
+$AgentId  = $IdentityLines[1].Trim()
+$AgentDir = "$HivequeenPath\agents\$HiveHost\$AgentId"
+
+Write-Host "-> hivequeen path : $HivequeenPath"
+Write-Host "-> host           : $HiveHost"
+Write-Host "-> agent id       : $AgentId"
+Write-Host "-> config target  : $ConfigPath"
+
 # 1. Create agent memory directory
 New-Item -ItemType Directory -Force -Path $AgentDir | Out-Null
 $MemoryFile = "$AgentDir\memory.md"
 if (-not (Test-Path $MemoryFile)) {
     @"
-# MEMORY -- $AgentId
+# MEMORY -- $HiveHost/$AgentId
 
 > Private memory for this agent instance.
-> Only $AgentId writes here.
+> Only $HiveHost/$AgentId writes here.
 
 ---
 
@@ -59,13 +63,13 @@ if ($ConfigDir) {
     New-Item -ItemType Directory -Force -Path $ConfigDir | Out-Null
 }
 & $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
-    $ConfigPath $HivequeenPath $AgentId
+    $ConfigPath $HivequeenPath $HiveHost $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "bootstrap injection failed (exit $LASTEXITCODE)"
 }
 
 Write-Host ""
 Write-Host "OK hivequeen installed for $Prefix"
-Write-Host "   agent  : $AgentId"
+Write-Host "   agent  : $HiveHost/$AgentId"
 Write-Host "   memory : $MemoryFile"
 Write-Host "   config : $ConfigPath"

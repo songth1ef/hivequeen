@@ -3,7 +3,7 @@ set -e
 
 # ---------------------------------------------
 # hivequeen compile
-# Aggregates all agents/*/memory.md into shared/memory.md
+# Aggregates all agents/*/*/memory.md into shared/memory.md
 # ---------------------------------------------
 
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -33,8 +33,12 @@ OUTPUT+="> Read-only for agents. Do not edit manually.\n"
 OUTPUT+="> Last compiled: $NOW\n\n---\n\n"
 
 for f in "${MEMORY_FILES[@]}"; do
-  AGENT_ID=$(basename "$(dirname "$f")")
-  OUTPUT+="## $AGENT_ID\n\n"
+  # Build label as <host>/<agent-id> from the two directory levels above memory.md
+  AGENT_DIR=$(dirname "$f")
+  AGENT_ID=$(basename "$AGENT_DIR")
+  HOST_ID=$(basename "$(dirname "$AGENT_DIR")")
+  LABEL="$HOST_ID/$AGENT_ID"
+  OUTPUT+="## $LABEL\n\n"
   # Strip frontmatter-style header (first H1 + metadata lines)
   CONTENT=$(tail -n +4 "$f" | sed '/^---$/d' | sed '/^_No memory yet\._/d')
   if [ -z "$(echo "$CONTENT" | tr -d '[:space:]')" ]; then

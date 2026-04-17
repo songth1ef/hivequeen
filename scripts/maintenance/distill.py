@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # hivequeen memory distiller (LLM-oriented variant of compile.sh)
 #
-# Walks every agents/<id>/memory.md, reads the current shared/memory.md, and
+# Walks every agents/<host>/<id>/memory.md, reads the current shared/memory.md, and
 # prints a single prompt suitable for an LLM agent to merge into a new
 # shared/memory.md per AGENTS.md section 7.
 #
@@ -51,12 +51,16 @@ def main() -> int:
         return 1
 
     memory_data = []
-    for agent_id in sorted(os.listdir(agents_dir)):
-        m_path = f"{agents_dir}/{agent_id}/memory.md"
-        if os.path.isfile(m_path):
-            content = read_file_robust(m_path)
-            if content and "_No memory yet._" not in content:
-                memory_data.append({"id": agent_id, "content": content})
+    for host in sorted(os.listdir(agents_dir)):
+        host_dir = f"{agents_dir}/{host}"
+        if not os.path.isdir(host_dir):
+            continue
+        for agent_id in sorted(os.listdir(host_dir)):
+            m_path = f"{host_dir}/{agent_id}/memory.md"
+            if os.path.isfile(m_path):
+                content = read_file_robust(m_path)
+                if content and "_No memory yet._" not in content:
+                    memory_data.append({"id": f"{host}/{agent_id}", "content": content})
 
     if not memory_data:
         print("No meaningful agent memory found to distill.")

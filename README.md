@@ -17,11 +17,11 @@ hivequeen repo (your private queen)
 ```
 
 Every machine that clones your queen gets the same brain.
-Every agent instance writes only to its own `agents/<agent-id>/` directory — no conflicts, ever.
+Every agent instance writes only to its own `agents/<host>/<agent-id>/` directory — no conflicts, ever.
 
 ```
 Session start  →  git pull  →  load context
-Session end    →  git commit agents/<id>/  →  git push
+Session end    →  git commit agents/<host>/<id>/  →  git push
 ```
 
 ---
@@ -135,7 +135,7 @@ After agents have accumulated memory, merge it into `shared/memory.md`
 using one of two strategies:
 
 ```bash
-# Mechanical: concatenate every agents/*/memory.md, commit, push.
+# Mechanical: concatenate every agents/*/*/memory.md, commit, push.
 bash ~/hivequeen/scripts/maintenance/compile.sh
 
 # LLM-oriented: print a distillation prompt. Feed the output to any
@@ -181,7 +181,7 @@ hivequeen/
     │   ├── _match-file.py         stdin-based file matcher
     │   └── export-claude-mem.sh   optional claude-mem bridge
     └── maintenance/               ops
-        ├── compile.sh             aggregate agents/* into shared/ (mechanical)
+        ├── compile.sh             aggregate agents/*/* into shared/ (mechanical)
         ├── distill.py             LLM-oriented variant: print a merge prompt
         ├── sync-claude-md.sh      regenerate CLAUDE.md from AGENTS.md
         └── update.sh              pull upstream protocol layer
@@ -197,14 +197,14 @@ Each file has a line limit. When exceeded, split into topic files and use an ind
 |---|---|
 | `queen/agent-rules.md` | 80 |
 | `queen/strategy.md` | 80 |
-| `agents/<id>/memory.md` | 200 |
+| `agents/<host>/<id>/memory.md` | 200 |
 | `shared/memory.md` | 500 |
 | `projects/<name>.md` | 150 |
 
-**Example — split `agents/claude-macbook/memory.md` when it hits 150 lines:**
+**Example — split `agents/macbook/claude/memory.md` when it hits 150 lines:**
 
 ```
-agents/claude-macbook/
+agents/macbook/claude/
 ├── memory.md          ← becomes an index
 ├── user_profile.md
 ├── feedback_collab.md
@@ -231,7 +231,7 @@ Each agent owns exactly one directory under `agents/`. No two agents ever write 
 | Path | Who writes | Conflict possible? |
 |---|---|---|
 | `queen/` | You (human) | No |
-| `agents/<id>/` | That agent only | No |
+| `agents/<host>/<id>/` | That agent only | No |
 | `shared/` | `compile.sh` only | No |
 
 ---
@@ -312,7 +312,7 @@ bash scripts/install/generic.sh <prefix> <config-path>
 ```
 
 This:
-- Creates `agents/<prefix>-<hostname>/memory.md` for that tool on this machine
+- Creates `agents/<host>/<prefix>/memory.md` for that tool on this machine
 - Writes the hivequeen bootstrap block into `<config-path>` inside
   `<!-- hivequeen:begin -->` / `<!-- hivequeen:end -->` markers, preserving
   any existing user content

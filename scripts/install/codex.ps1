@@ -7,31 +7,6 @@ $ErrorActionPreference = "Stop"
 $HivequeenPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $CodexDir = "$env:USERPROFILE\.codex"
 $Settings = "$CodexDir\config.json"
-$AgentId = "codex-$env:COMPUTERNAME".ToLower()
-$AgentDir = "$HivequeenPath\agents\$AgentId"
-
-Write-Host "-> hivequeen path : $HivequeenPath"
-Write-Host "-> agent id       : $AgentId"
-
-# 1. Create this agent's memory directory
-New-Item -ItemType Directory -Force -Path $AgentDir | Out-Null
-$MemoryFile = "$AgentDir\memory.md"
-if (-not (Test-Path $MemoryFile)) {
-    @"
-# MEMORY -- $AgentId
-
-> Private memory for this agent instance.
-> Only $AgentId writes here.
-
----
-
-_No memory yet._
-"@ | Set-Content -Path $MemoryFile -Encoding UTF8
-    Write-Host "v created $MemoryFile"
-}
-
-# 2. Inject hivequeen bootstrap (marker-preserved). Requires python.
-New-Item -ItemType Directory -Force -Path $CodexDir | Out-Null
 
 $PythonCmd = $null
 foreach ($Cand in @("python3", "python", "py")) {
@@ -41,8 +16,37 @@ if (-not $PythonCmd) {
     throw "python3 (or python / py) not found -- required by hivequeen installer"
 }
 
+$IdentityLines = & $PythonCmd (Join-Path $HivequeenPath "scripts\install\_identity.py") codex
+if ($LASTEXITCODE -ne 0) { throw "identity resolver failed (exit $LASTEXITCODE)" }
+$HiveHost = $IdentityLines[0].Trim()
+$AgentId  = $IdentityLines[1].Trim()
+$AgentDir = "$HivequeenPath\agents\$HiveHost\$AgentId"
+
+Write-Host "-> hivequeen path : $HivequeenPath"
+Write-Host "-> host           : $HiveHost"
+Write-Host "-> agent id       : $AgentId"
+
+# 1. Create this agent's memory directory
+New-Item -ItemType Directory -Force -Path $AgentDir | Out-Null
+$MemoryFile = "$AgentDir\memory.md"
+if (-not (Test-Path $MemoryFile)) {
+    @"
+# MEMORY -- $HiveHost/$AgentId
+
+> Private memory for this agent instance.
+> Only $HiveHost/$AgentId writes here.
+
+---
+
+_No memory yet._
+"@ | Set-Content -Path $MemoryFile -Encoding UTF8
+    Write-Host "v created $MemoryFile"
+}
+
+# 2. Inject hivequeen bootstrap (marker-preserved).
+New-Item -ItemType Directory -Force -Path $CodexDir | Out-Null
 & $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
-    "$CodexDir\instructions.md" $HivequeenPath $AgentId
+    "$CodexDir\instructions.md" $HivequeenPath $HiveHost $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "Codex instructions bootstrap injection failed (exit $LASTEXITCODE)"
 }
@@ -52,7 +56,8 @@ if (-not (Test-Path $Settings)) {
     '{}' | Set-Content -Path $Settings -Encoding UTF8
 }
 
-$HookCmd = "cd `"$HivequeenPath`" && git pull --rebase --autostash -q && git add agents/$AgentId/ && git diff --cached --quiet || git commit -m 'memory: update $AgentId' && git push -q"
+$AgentRel = "agents/$HiveHost/$AgentId"
+$HookCmd = "cd `"$HivequeenPath`" && git pull --rebase --autostash -q && git add $AgentRel/ && (git diff --cached --quiet -- $AgentRel/ || git commit -m 'memory: update $HiveHost/$AgentId' -- $AgentRel/) && git push -q"
 
 $SettingsObj = Get-Content $Settings -Raw | ConvertFrom-Json
 
@@ -66,5 +71,5 @@ Write-Host "v registered session end hook in $Settings"
 
 Write-Host ""
 Write-Host "OK hivequeen installed for Codex"
-Write-Host "   agent: $AgentId"
+Write-Host "   agent: $HiveHost/$AgentId"
 Write-Host "   memory: $MemoryFile"

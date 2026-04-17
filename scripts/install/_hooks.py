@@ -6,7 +6,7 @@
 # Safe to re-run: removes prior hivequeen entries before inserting new ones.
 #
 # Usage:
-#   _install-hooks.py <settings.json> <hivequeen_path> <agent_id>
+#   _install-hooks.py <settings.json> <hivequeen_path> <host> <agent_id>
 #
 # Why a separate script: PowerShell's ConvertTo-Json mishandles single-element
 # nested arrays (serializes them as objects), and repeating the merge logic in
@@ -18,28 +18,30 @@ import os
 import sys
 
 
-def is_hivequeen_hook(cmd: str, agent_id: str) -> bool:
+def is_hivequeen_hook(cmd: str, host: str, agent_id: str) -> bool:
     """Return True if a stored hook command was installed by hivequeen.
 
-    Matches both the legacy flat layout (scripts/hook-hivequeen.sh) and the
-    new subdir layout (scripts/hooks/hivequeen.sh) so re-running the
-    installer cleanly supersedes either.
+    Matches legacy flat layout, v1 subdir layout, and current v2 layout so
+    re-running the installer cleanly supersedes any prior install.
     """
-    return (
-        "hook-hivequeen.sh" in cmd
-        or "hooks/hivequeen.sh" in cmd
-        or "export-claude-mem.sh" in cmd
-        or f"memory: update {agent_id}" in cmd
-        or (agent_id in cmd and "git push" in cmd)
-    )
+    if "hook-hivequeen.sh" in cmd or "hooks/hivequeen.sh" in cmd:
+        return True
+    if "export-claude-mem.sh" in cmd:
+        return True
+    if f"memory: update {agent_id}" in cmd or f"memory: update {host}/{agent_id}" in cmd:
+        return True
+    if agent_id in cmd and "git push" in cmd:
+        return True
+    return False
 
 
-def upsert(hooks: dict, event: str, matcher: str, cmd: str, agent_id: str) -> None:
+def upsert(hooks: dict, event: str, matcher: str, cmd: str,
+           host: str, agent_id: str) -> None:
     entries = hooks.get(event, [])
     filtered = []
     for e in entries:
         inner = (e.get("hooks") or [{}])[0].get("command", "")
-        if not is_hivequeen_hook(inner, agent_id):
+        if not is_hivequeen_hook(inner, host, agent_id):
             filtered.append(e)
     filtered.append({
         "matcher": matcher,
@@ -49,23 +51,24 @@ def upsert(hooks: dict, event: str, matcher: str, cmd: str, agent_id: str) -> No
 
 
 def main() -> int:
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 5:
         print(
-            "usage: _install-hooks.py <settings_path> <hivequeen_path> <agent_id>",
+            "usage: _install-hooks.py <settings_path> <hivequeen_path> <host> <agent_id>",
             file=sys.stderr,
         )
         return 2
 
     settings_path  = sys.argv[1]
     hivequeen_path = sys.argv[2].replace("\\", "/").rstrip("/")
-    agent_id       = sys.argv[3]
+    host           = sys.argv[3]
+    agent_id       = sys.argv[4]
 
     hook_script = f"{hivequeen_path}/scripts/hooks/hivequeen.sh"
     export_mem  = f"{hivequeen_path}/scripts/hooks/export-claude-mem.sh"
 
-    pre_cmd  = f"bash {hook_script} pre {agent_id}"
-    post_cmd = f"bash {hook_script} post {agent_id}"
-    stop_cmd = f"bash {export_mem}; bash {hook_script} stop {agent_id}"
+    pre_cmd  = f"bash {hook_script} pre {host} {agent_id}"
+    post_cmd = f"bash {hook_script} post {host} {agent_id}"
+    stop_cmd = f"bash {export_mem} {host} {agent_id}; bash {hook_script} stop {host} {agent_id}"
 
     os.makedirs(os.path.dirname(settings_path) or ".", exist_ok=True)
     if not os.path.exists(settings_path):
@@ -76,14 +79,14 @@ def main() -> int:
         settings = json.load(f)
 
     hooks = settings.setdefault("hooks", {})
-    upsert(hooks, "PreToolUse",  "Write|Edit", pre_cmd,  agent_id)
-    upsert(hooks, "PostToolUse", "Write|Edit", post_cmd, agent_id)
-    upsert(hooks, "Stop",        "",           stop_cmd, agent_id)
+    upsert(hooks, "PreToolUse",  "Write|Edit", pre_cmd,  host, agent_id)
+    upsert(hooks, "PostToolUse", "Write|Edit", post_cmd, host, agent_id)
+    upsert(hooks, "Stop",        "",           stop_cmd, host, agent_id)
 
     with open(settings_path, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2)
 
-    print(f"hivequeen hooks registered in {settings_path} for {agent_id}")
+    print(f"hivequeen hooks registered in {settings_path} for {host}/{agent_id}")
     print(f"  PreToolUse  (Write|Edit) -> {pre_cmd}")
     print(f"  PostToolUse (Write|Edit) -> {post_cmd}")
     print(f"  Stop                     -> {stop_cmd}")

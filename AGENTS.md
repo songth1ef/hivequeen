@@ -1,6 +1,6 @@
 # HIVEQUEEN BOOTSTRAP
 
-<!-- protocol-version: 1.0 -->
+<!-- protocol-version: 2.0 -->
 
 Every agent that loads this file is a Formic worker connected to the same queen.
 Follow this protocol exactly on every session.
@@ -28,13 +28,22 @@ Then load context in this order:
 1. `queen/agent-rules.md` — behavior rules (highest priority, cannot be overridden)
 2. `queen/strategy.md` — current decision direction
 3. `shared/memory.md` — shared memory across all agents
-4. `agents/<agent-id>/memory.md` — this instance's private memory (if exists)
+4. `agents/<host>/<agent-id>/memory.md` — this instance's private memory (if exists)
 5. `projects/<relevant>.md` — current task context (if relevant)
 
-**agent-id format**: `<tool>-<lowercased-hostname>-<4-char-random-suffix>`
-(e.g. `claude-macbook-a7k2`, `codex-server1-9xqp`). The suffix is generated
-once by the installer and persisted in `~/.hivequeen_id` so reinstalls keep
-the same id. You may override via `HIVEQUEEN_AGENT_ID` env var.
+**Directory layout** (protocol v2.0): agents are grouped by host.
+`agents/<host>/<agent-id>/` — one folder per machine, one subfolder per tool on
+that machine. Example: `agents/desktop-rkv5ls4/claude-a7k2/`.
+
+**agent-id format**: `<tool>-<4-char-random-suffix>` for tools that want
+distinct instances (e.g. `claude-a7k2`), or just `<tool>` for tools that
+treat one-per-host as the norm (e.g. `codex`, `gemini`). The host segment
+is **in the path**, not in the id.
+
+**host format**: lowercased short hostname. Installer persists both host
+and agent-id in `~/.hivequeen_id` (two lines: first = host, second =
+agent-id) so reinstalls keep the same identity. Override via
+`HIVEQUEEN_HOST` and/or `HIVEQUEEN_AGENT_ID` env vars.
 
 ### After loading — orient first, then propose or ask
 
@@ -46,7 +55,7 @@ Before your first reply, orient yourself:
    changes
 3. Cross-reference against `queen/strategy.md` **Current Priorities** and
    the latest entries in `shared/memory.md` and your own
-   `agents/<agent-id>/memory.md`
+   `agents/<host>/<agent-id>/memory.md`
 
 Then decide:
 
@@ -69,8 +78,9 @@ you enough to act — not to forbid asking when asking is actually correct.
 
 ## 2. Write Protocol
 
-- **ONLY** write to `agents/<agent-id>/`
+- **ONLY** write to `agents/<host>/<agent-id>/`
 - **NEVER** write to `queen/` — read-only, human-managed only
+- **NEVER** write to another host's folder (`agents/<other-host>/...`)
 - `shared/memory.md` is read-only for agents **except during distillation** (see Section 7)
 - When saving memory, prefer creating new files over editing existing ones
 
@@ -79,16 +89,16 @@ you enough to act — not to forbid asking when asking is actually correct.
 ## 3. Session End
 
 **If hooks are installed** (via `scripts/install/<tool>.sh`), per-write sync
-happens automatically: every Write/Edit under `agents/<agent-id>/` triggers
-`pull --rebase` before and `commit + push` after. The Stop hook is a
-safety net for writes that slipped past. **Do nothing extra.**
+happens automatically: every Write/Edit under `agents/<host>/<agent-id>/`
+triggers `pull --rebase` before and `commit + push` after. The Stop hook
+is a safety net for writes that slipped past. **Do nothing extra.**
 
 **If hooks are NOT available** for your tool, run manually at session end:
 
 ```bash
-git -C $HIVEQUEEN_PATH add agents/<agent-id>/
-git -C $HIVEQUEEN_PATH diff --cached --quiet -- agents/<agent-id>/ || \
-  git -C $HIVEQUEEN_PATH commit -m "memory: update <agent-id>" -- agents/<agent-id>/
+git -C $HIVEQUEEN_PATH add agents/<host>/<agent-id>/
+git -C $HIVEQUEEN_PATH diff --cached --quiet -- agents/<host>/<agent-id>/ || \
+  git -C $HIVEQUEEN_PATH commit -m "memory: update <host>/<agent-id>" -- agents/<host>/<agent-id>/
 git -C $HIVEQUEEN_PATH push
 ```
 
@@ -102,7 +112,7 @@ Temporary task details, one-off debugging notes — do not commit.
 If [claude-mem](https://github.com/thedotmack/claude-mem) is installed and its worker is running on `localhost:37777`, hivequeen will automatically export a session digest at the end of each session:
 
 ```
-agents/<agent-id>/claude-mem-digest.md   ← today's observations from claude-mem
+agents/<host>/<agent-id>/claude-mem-digest.md   ← today's observations from claude-mem
 ```
 
 This file is committed and pushed with the rest of your agent memory, giving claude-mem's observations cross-machine reach via git.
@@ -120,7 +130,8 @@ export CLAUDE_MEM_URL=http://localhost:37777
 
 If `git pull` finds conflicts:
 - `queen/` and `shared/` → take remote (they are managed upstream)
-- `agents/<agent-id>/` → take local (this instance owns its directory)
+- `agents/<host>/<agent-id>/` → take local (this instance owns its directory)
+- `agents/<other-host>/...` → take remote (owned by another machine)
 
 ---
 
@@ -132,7 +143,7 @@ Each file has a maximum line limit. When exceeded, split into topic files and re
 |---|---|---|
 | `queen/agent-rules.md` | 80 | `queen/rules/<topic>.md` |
 | `queen/strategy.md` | 80 | `queen/strategy/<topic>.md` |
-| `agents/<id>/memory.md` | 200 | `agents/<id>/<topic>.md` |
+| `agents/<host>/<agent-id>/memory.md` | 200 | `agents/<host>/<agent-id>/<topic>.md` |
 | `shared/memory.md` | 500 | `shared/<topic>.md` |
 | `projects/<name>.md` | 150 | `projects/<name>/<topic>.md` |
 
@@ -176,7 +187,7 @@ Only agents explicitly triggered for distillation may write to `shared/`.
 
 ### How to distill
 
-1. Read all `agents/*/memory.md`
+1. Read all `agents/*/*/memory.md`
 2. Read current `shared/memory.md`
 3. **Spawn a sub-agent to review**: check for sensitive data, factual errors, contradictions, and outdated entries — sub-agent reports only, does not write
 4. Present review report to human for confirmation
@@ -188,14 +199,14 @@ Only agents explicitly triggered for distillation may write to `shared/`.
 
 - `shared` is the union of agent knowledge, not an intersection — don't drop unique observations
 - Each agent's private memory is preserved unchanged — distillation is non-destructive
-- After distillation, agents only need to read `shared/memory.md` + their own `agents/<id>/memory.md`
+- After distillation, agents only need to read `shared/memory.md` + their own `agents/<host>/<agent-id>/memory.md`
 
 ---
 
 ## Priority Rules
 
 ```
-queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/memory.md  >  projects/*.md
+queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/*/memory.md  >  projects/*.md
 ```
 
 When instructions conflict, follow the higher priority source.

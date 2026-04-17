@@ -3,7 +3,7 @@
 # hivequeen x claude-mem exporter
 #
 # Fetches today's observations from claude-mem's HTTP API and writes a digest
-# to agents/<id>/claude-mem-digest.md so hivequeen can sync it across machines.
+# to agents/<host>/<id>/claude-mem-digest.md so hivequeen can sync it across machines.
 #
 # Called automatically during Session End (registered by install-claude.sh).
 # Exits cleanly if claude-mem is not running -- never blocks the main hook.
@@ -12,9 +12,21 @@
 set -euo pipefail
 
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
-AGENT_ID="${HIVEQUEEN_AGENT_ID:-claude-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')}"
-OUTPUT_FILE="$HIVEQUEEN_PATH/agents/$AGENT_ID/claude-mem-digest.md"
+
+# Args: $1 = host, $2 = agent-id (both required, forwarded from Stop hook)
+HOST_ID="${1:-${HIVEQUEEN_HOST:-}}"
+AGENT_ID="${2:-${HIVEQUEEN_AGENT_ID:-}}"
+
+if [ -z "$HOST_ID" ] || [ -z "$AGENT_ID" ]; then
+  # Fallback: resolve from identity helper (e.g. when run manually)
+  eval "$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" claude --with-suffix 2>/dev/null | \
+    awk 'NR==1{print "HOST_ID="$0} NR==2{print "AGENT_ID="$0}')"
+fi
+
+[ -z "$HOST_ID" ] && { echo "[!]  claude-mem export: host unresolved, skipping" >&2; exit 0; }
+[ -z "$AGENT_ID" ] && { echo "[!]  claude-mem export: agent-id unresolved, skipping" >&2; exit 0; }
+
+OUTPUT_FILE="$HIVEQUEEN_PATH/agents/$HOST_ID/$AGENT_ID/claude-mem-digest.md"
 WORKER_URL="${CLAUDE_MEM_URL:-http://localhost:37777}"
 
 # -- 1. Guard: skip silently if claude-mem worker is not running ---------------
@@ -81,7 +93,7 @@ mkdir -p "$(dirname "$OUTPUT_FILE")"
 NOW=$(date -u +"%Y-%m-%d %H:%M UTC")
 
 cat > "$OUTPUT_FILE" <<MDEOF
-# claude-mem digest -- $AGENT_ID
+# claude-mem digest -- $HOST_ID/$AGENT_ID
 
 > Exported: $NOW
 > Source: claude-mem @ $WORKER_URL

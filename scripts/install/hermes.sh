@@ -7,11 +7,13 @@ set -e
 
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
-HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
-AGENT_ID="hermes-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
+IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" hermes)"
+HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
+AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
+AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
 
 echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 echo "-> hermes home    : $HERMES_DIR"
 
@@ -19,10 +21,10 @@ echo "-> hermes home    : $HERMES_DIR"
 mkdir -p "$AGENT_DIR"
 if [ ! -f "$AGENT_DIR/memory.md" ]; then
   cat > "$AGENT_DIR/memory.md" <<EOF
-# MEMORY -- $AGENT_ID
+# MEMORY -- $HOST/$AGENT_ID
 
 > Private memory for this agent instance.
-> Only $AGENT_ID writes here.
+> Only $HOST/$AGENT_ID writes here.
 
 ---
 
@@ -46,10 +48,10 @@ EOF
 fi
 
 python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$HERMES_DIR/SOUL.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
+  "$HERMES_DIR/SOUL.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
 echo "OK hivequeen installed for Hermes Agent"
-echo "   agent  : $AGENT_ID"
+echo "   agent  : $HOST/$AGENT_ID"
 echo "   memory : $AGENT_DIR/memory.md"
 echo "   soul   : $HERMES_DIR/SOUL.md"

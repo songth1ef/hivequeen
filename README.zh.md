@@ -195,14 +195,14 @@ hivequeen/
 |---|---|
 | `queen/agent-rules.md` | 80 |
 | `queen/strategy.md` | 80 |
-| `agents/<id>/memory.md` | 200 |
+| `agents/<host>/<id>/memory.md` | 200 |
 | `shared/memory.md` | 500 |
 | `projects/<name>.md` | 150 |
 
-**示例 — `agents/claude-macbook/memory.md` 达到上限后拆分：**
+**示例 — `agents/macbook/claude/memory.md` 达到上限后拆分：**
 
 ```
-agents/claude-macbook/
+agents/macbook/claude/
 ├── memory.md          ← 变为索引
 ├── user_profile.md
 ├── feedback_collab.md

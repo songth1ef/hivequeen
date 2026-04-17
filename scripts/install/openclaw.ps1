@@ -6,10 +6,23 @@ $ErrorActionPreference = "Stop"
 
 $HivequeenPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $OpenclawDir   = "$env:USERPROFILE\.openclaw\workspace"
-$AgentId       = "openclaw-$env:COMPUTERNAME".ToLower()
-$AgentDir      = "$HivequeenPath\agents\$AgentId"
+
+$PythonCmd = $null
+foreach ($Cand in @("python3", "python", "py")) {
+    if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
+}
+if (-not $PythonCmd) {
+    throw "python3 (or python / py) not found -- required by hivequeen installer"
+}
+
+$IdentityLines = & $PythonCmd (Join-Path $HivequeenPath "scripts\install\_identity.py") openclaw
+if ($LASTEXITCODE -ne 0) { throw "identity resolver failed (exit $LASTEXITCODE)" }
+$HiveHost = $IdentityLines[0].Trim()
+$AgentId  = $IdentityLines[1].Trim()
+$AgentDir = "$HivequeenPath\agents\$HiveHost\$AgentId"
 
 Write-Host "-> hivequeen path : $HivequeenPath"
+Write-Host "-> host           : $HiveHost"
 Write-Host "-> agent id       : $AgentId"
 Write-Host "-> openclaw ws    : $OpenclawDir"
 
@@ -18,10 +31,10 @@ New-Item -ItemType Directory -Force -Path $AgentDir | Out-Null
 $MemoryFile = "$AgentDir\memory.md"
 if (-not (Test-Path $MemoryFile)) {
     @"
-# MEMORY -- $AgentId
+# MEMORY -- $HiveHost/$AgentId
 
 > Private memory for this agent instance.
-> Only $AgentId writes here.
+> Only $HiveHost/$AgentId writes here.
 
 ---
 
@@ -34,16 +47,8 @@ _No memory yet._
 New-Item -ItemType Directory -Force -Path $OpenclawDir | Out-Null
 
 # 3. Inject hivequeen bootstrap into AGENTS.md (marker-preserved).
-$PythonCmd = $null
-foreach ($Cand in @("python3", "python", "py")) {
-    if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
-}
-if (-not $PythonCmd) {
-    throw "python3 (or python / py) not found -- required by hivequeen installer"
-}
-
 & $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
-    "$OpenclawDir\AGENTS.md" $HivequeenPath $AgentId
+    "$OpenclawDir\AGENTS.md" $HivequeenPath $HiveHost $AgentId
 if ($LASTEXITCODE -ne 0) {
     throw "OpenClaw AGENTS.md bootstrap injection failed (exit $LASTEXITCODE)"
 }
@@ -60,6 +65,6 @@ if (-not (Test-Path $SoulDst)) {
 
 Write-Host ""
 Write-Host "OK hivequeen installed for OpenClaw"
-Write-Host "   agent  : $AgentId"
+Write-Host "   agent  : $HiveHost/$AgentId"
 Write-Host "   memory : $MemoryFile"
 Write-Host "   ws     : $OpenclawDir"

@@ -8,21 +8,24 @@ set -e
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CODEX_DIR="$HOME/.codex"
 SETTINGS="$CODEX_DIR/config.json"
-HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
-AGENT_ID="codex-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
+
+IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" codex)"
+HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
+AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
+AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
 
 echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 
 # 1. Create this agent's memory directory
 mkdir -p "$AGENT_DIR"
 if [ ! -f "$AGENT_DIR/memory.md" ]; then
   cat > "$AGENT_DIR/memory.md" <<EOF
-# MEMORY -- $AGENT_ID
+# MEMORY -- $HOST/$AGENT_ID
 
 > Private memory for this agent instance.
-> Only $AGENT_ID writes here.
+> Only $HOST/$AGENT_ID writes here.
 
 ---
 
@@ -34,7 +37,7 @@ fi
 # 2. Inject hivequeen bootstrap into Codex instructions (marker-preserved).
 mkdir -p "$CODEX_DIR"
 python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$CODEX_DIR/instructions.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
+  "$CODEX_DIR/instructions.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
 
 # 4. Register session end hook (Codex uses config.json)
 if [ ! -f "$SETTINGS" ]; then
@@ -46,12 +49,20 @@ import json
 
 settings_path = "$SETTINGS"
 hivequeen_path = "$HIVEQUEEN_PATH"
+host = "$HOST"
 agent_id = "$AGENT_ID"
 
 with open(settings_path) as f:
     settings = json.load(f)
 
-hook_cmd = f"cd {hivequeen_path} && git pull --rebase --autostash -q && git add agents/{agent_id}/ && git diff --cached --quiet || git commit -m 'memory: update {agent_id}' && git push -q"
+hook_cmd = (
+    f"cd {hivequeen_path} && "
+    f"git pull --rebase --autostash -q && "
+    f"git add agents/{host}/{agent_id}/ && "
+    f"(git diff --cached --quiet -- agents/{host}/{agent_id}/ || "
+    f"git commit -m 'memory: update {host}/{agent_id}' -- agents/{host}/{agent_id}/) && "
+    f"git push -q"
+)
 
 settings.setdefault("session", {})["end_hook"] = hook_cmd
 
@@ -63,5 +74,5 @@ PYEOF
 
 echo ""
 echo "OK hivequeen installed for Codex"
-echo "   agent: $AGENT_ID"
+echo "   agent: $HOST/$AGENT_ID"
 echo "   memory: $AGENT_DIR/memory.md"

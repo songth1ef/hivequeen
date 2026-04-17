@@ -7,11 +7,13 @@ set -e
 
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 GEMINI_DIR="${GEMINI_HOME:-$HOME/.gemini}"
-HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
-AGENT_ID="gemini-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
+IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" gemini)"
+HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
+AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
+AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
 
 echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 echo "-> gemini home    : $GEMINI_DIR"
 
@@ -19,10 +21,10 @@ echo "-> gemini home    : $GEMINI_DIR"
 mkdir -p "$AGENT_DIR"
 if [ ! -f "$AGENT_DIR/memory.md" ]; then
   cat > "$AGENT_DIR/memory.md" <<EOF
-# MEMORY -- $AGENT_ID
+# MEMORY -- $HOST/$AGENT_ID
 
 > Private memory for this agent instance.
-> Only $AGENT_ID writes here.
+> Only $HOST/$AGENT_ID writes here.
 
 ---
 
@@ -34,11 +36,11 @@ fi
 # 2. Inject hivequeen bootstrap into ~/.gemini/GEMINI.md (preserves user content).
 mkdir -p "$GEMINI_DIR"
 python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$GEMINI_DIR/GEMINI.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
+  "$GEMINI_DIR/GEMINI.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
 echo "OK hivequeen installed for Gemini CLI"
-echo "   agent  : $AGENT_ID"
+echo "   agent  : $HOST/$AGENT_ID"
 echo "   memory : $AGENT_DIR/memory.md"
 echo "   config : $GEMINI_DIR/GEMINI.md"
 echo ""

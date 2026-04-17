@@ -22,8 +22,8 @@ set -e
 #   bash install-generic.sh <prefix> <path>
 #
 # The script:
-#   - Generates a deterministic agent-id: "<prefix>-<lowercase-hostname>"
-#   - Creates agents/<agent-id>/memory.md if missing
+#   - Generates a deterministic agent-id "<prefix>", rooted under agents/<host>/
+#   - Creates agents/<host>/<agent-id>/memory.md if missing
 #   - Injects (or updates) the hivequeen bootstrap block in the target file
 #     via scripts/install/_bootstrap.py (preserves any non-hivequeen content)
 #
@@ -54,12 +54,15 @@ fi
 # Expand ~ in config path
 eval CONFIG_PATH="$CONFIG_PATH"
 
-# Generate agent-id: <prefix>-<host> (matches codex/hermes/openclaw pattern)
-HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
-AGENT_ID="${PREFIX}-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
+# Resolve (host, agent-id) via shared identity helper. Generic installer uses
+# the deterministic one-per-host layout: agents/<host>/<prefix>/
+IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" "$PREFIX")"
+HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
+AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
+AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
 
 echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 echo "-> config target  : $CONFIG_PATH"
 
@@ -67,10 +70,10 @@ echo "-> config target  : $CONFIG_PATH"
 mkdir -p "$AGENT_DIR"
 if [ ! -f "$AGENT_DIR/memory.md" ]; then
   cat > "$AGENT_DIR/memory.md" <<EOF
-# MEMORY -- $AGENT_ID
+# MEMORY -- $HOST/$AGENT_ID
 
 > Private memory for this agent instance.
-> Only $AGENT_ID writes here.
+> Only $HOST/$AGENT_ID writes here.
 
 ---
 
@@ -83,10 +86,10 @@ fi
 CONFIG_DIR="$(dirname "$CONFIG_PATH")"
 mkdir -p "$CONFIG_DIR"
 python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$CONFIG_PATH" "$HIVEQUEEN_PATH" "$AGENT_ID"
+  "$CONFIG_PATH" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
 echo "OK hivequeen installed for $PREFIX"
-echo "   agent  : $AGENT_ID"
+echo "   agent  : $HOST/$AGENT_ID"
 echo "   memory : $AGENT_DIR/memory.md"
 echo "   config : $CONFIG_PATH"

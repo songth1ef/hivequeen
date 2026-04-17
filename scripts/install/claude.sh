@@ -8,31 +8,26 @@ set -e
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 SETTINGS="$CLAUDE_DIR/settings.json"
-HIVEQUEEN_ID_FILE="$HOME/.hivequeen_id"
 
-# Generate or reuse agent-id (suffix is fixed per machine)
-if [ -f "$HIVEQUEEN_ID_FILE" ]; then
-  AGENT_ID="$(cat "$HIVEQUEEN_ID_FILE")"
-else
-  SUFFIX="$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 4)"
-  HOST_SHORT="$(hostname -s 2>/dev/null || hostname | cut -d. -f1)"
-  AGENT_ID="claude-$(echo "$HOST_SHORT" | tr '[:upper:]' '[:lower:]')-$SUFFIX"
-  echo "$AGENT_ID" > "$HIVEQUEEN_ID_FILE"
-fi
-
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
+# Resolve (host, agent-id) via shared identity helper. Claude uses a random
+# suffix so multiple installs on one machine stay distinct.
+IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" claude --with-suffix)"
+HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
+AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
+AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
 
 echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 
 # 1. Create this agent's memory directory
 mkdir -p "$AGENT_DIR"
 if [ ! -f "$AGENT_DIR/memory.md" ]; then
   cat > "$AGENT_DIR/memory.md" <<EOF
-# MEMORY -- $AGENT_ID
+# MEMORY -- $HOST/$AGENT_ID
 
 > Private memory for this agent instance.
-> Only $AGENT_ID writes here.
+> Only $HOST/$AGENT_ID writes here.
 
 ---
 
@@ -45,7 +40,7 @@ fi
 #    Preserves any existing user content via HTML-comment marker block.
 mkdir -p "$CLAUDE_DIR"
 python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$CLAUDE_DIR/CLAUDE.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
+  "$CLAUDE_DIR/CLAUDE.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
 
 # 3. Register hooks: PreToolUse / PostToolUse / Stop
 #    Atomic per-write sync: pull before every memory Write/Edit,
@@ -57,9 +52,9 @@ if [ ! -f "$SETTINGS" ]; then
 fi
 
 python3 "$HIVEQUEEN_PATH/scripts/install/_hooks.py" \
-  "$SETTINGS" "$HIVEQUEEN_PATH" "$AGENT_ID"
+  "$SETTINGS" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
 echo "OK hivequeen installed for Claude Code"
-echo "   agent: $AGENT_ID"
+echo "   agent : $HOST/$AGENT_ID"
 echo "   memory: $AGENT_DIR/memory.md"

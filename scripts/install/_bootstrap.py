@@ -13,7 +13,7 @@
 #   - File exists, markers present -> replace content between markers only
 #
 # Usage:
-#   _install-bootstrap.py <output_md> <hivequeen_path> <agent_id>
+#   _install-bootstrap.py <output_md> <hivequeen_path> <host> <agent_id>
 # -----------------------------------------------------------------------------
 
 import os
@@ -38,7 +38,7 @@ Then load context from hivequeen in this order:
 1. `{hp}/queen/agent-rules.md`
 2. `{hp}/queen/strategy.md`
 3. `{hp}/shared/memory.md`
-4. `{hp}/agents/{aid}/memory.md`
+4. `{hp}/agents/{host}/{aid}/memory.md`
 5. Relevant `{hp}/projects/*.md` for current task
 
 ## After loading -- self-direct, do not ask
@@ -50,7 +50,7 @@ Before your first reply:
    every instance
 2. `git -C {hp} log --oneline -5` -- recent protocol / shared changes
 3. Cross-reference with `queen/strategy.md` **Current Priorities** and
-   the latest entries in `shared/memory.md` / `agents/{aid}/memory.md`
+   the latest entries in `shared/memory.md` / `agents/{host}/{aid}/memory.md`
 
 Open with: **(a) state summary** (2-3 bullets on what's in flight, what
 priorities say, what's blocking) and **(b) one concrete proposal** for
@@ -62,12 +62,12 @@ you ask -- and you must state that you checked and found nothing.
 
 ## Write protocol
 
-- Only write to `{hp}/agents/{aid}/`
+- Only write to `{hp}/agents/{host}/{aid}/`
 - When the session ends and memory changed:
 
 ```bash
-git -C {hp} add agents/{aid}/
-git -C {hp} diff --cached --quiet || git -C {hp} commit -m "memory: update {aid}"
+git -C {hp} add agents/{host}/{aid}/
+git -C {hp} diff --cached --quiet || git -C {hp} commit -m "memory: update {host}/{aid}"
 git -C {hp} push
 ```
 
@@ -77,18 +77,21 @@ See full protocol: `{hp}/AGENTS.md`
 
 
 def main() -> int:
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 5:
         print(
-            "usage: _install-bootstrap.py <output_md> <hivequeen_path> <agent_id>",
+            "usage: _install-bootstrap.py <output_md> <hivequeen_path> <host> <agent_id>",
             file=sys.stderr,
         )
         return 2
 
     out_path       = sys.argv[1]
     hivequeen_path = sys.argv[2].replace("\\", "/").rstrip("/")
-    agent_id       = sys.argv[3]
+    host           = sys.argv[3]
+    agent_id       = sys.argv[4]
 
-    block = BLOCK_TEMPLATE.format(begin=BEGIN, end=END, hp=hivequeen_path, aid=agent_id)
+    block = BLOCK_TEMPLATE.format(
+        begin=BEGIN, end=END, hp=hivequeen_path, host=host, aid=agent_id
+    )
 
     out_dir = os.path.dirname(out_path)
     if out_dir:
