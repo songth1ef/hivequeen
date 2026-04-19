@@ -28,6 +28,57 @@ class DocsConsistencyTests(unittest.TestCase):
 
         self.assertIn("git diff --cached --quiet -- shared/memory.md", compile_script)
 
+    def test_geo_content_assets_exist(self) -> None:
+        required_paths = [
+            "llms.txt",
+            "docs/README.md",
+            "docs/ai-agent-memory.md",
+            "docs/claude-code-memory.md",
+            "docs/codex-persistent-memory.md",
+            "docs/git-native-memory-protocol.md",
+            "docs/agents-md-best-practices.md",
+            "docs/shared-context-for-ai-coding-agents.md",
+            "docs/faq.md",
+            "docs/comparisons/claude-mem.md",
+        ]
+
+        for path in required_paths:
+            with self.subTest(path=path):
+                self.assertTrue((REPO_ROOT / path).exists(), f"{path} should exist")
+
+    def test_readme_keeps_core_geo_entities(self) -> None:
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8").lower()
+        required_terms = [
+            "ai agent memory",
+            "git-native memory protocol",
+            "claude code",
+            "codex cli",
+            "gemini cli",
+            "persistent memory",
+            "shared context",
+        ]
+
+        for term in required_terms:
+            with self.subTest(term=term):
+                self.assertIn(term, readme)
+
+    def test_llms_txt_points_to_answer_ready_docs(self) -> None:
+        llms = (REPO_ROOT / "llms.txt").read_text(encoding="utf-8")
+
+        self.assertIn("hivequeen", llms)
+        self.assertIn("docs/ai-agent-memory.md", llms)
+        self.assertIn("docs/claude-code-memory.md", llms)
+        self.assertIn("docs/codex-persistent-memory.md", llms)
+        self.assertIn("docs/agents-md-best-practices.md", llms)
+        self.assertIn("docs/shared-context-for-ai-coding-agents.md", llms)
+
+    def test_docs_index_keeps_no_website_positioning(self) -> None:
+        docs_index = (REPO_ROOT / "docs" / "README.md").read_text(encoding="utf-8").lower()
+
+        self.assertIn("github repository", docs_index)
+        self.assertIn("ai search systems", docs_index)
+        self.assertIn("without a website", docs_index)
+
 
 if __name__ == "__main__":
     unittest.main()

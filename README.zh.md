@@ -2,7 +2,28 @@
 
 [English](README.md) | 中文
 
-模板即继承，clone 即连接，所有 agent 共用同一个大脑。git 原生记忆协议，无需插件，无需服务器。
+模板即继承，clone 即连接，所有 agent 共用同一个大脑。hivequeen 是 git 原生的 AI agent memory 协议，用于 Claude Code、Codex CLI、Gemini CLI 等 AI coding agents 的 persistent memory 与 shared context，无需插件，无需服务器。
+
+## hivequeen 是什么？
+
+hivequeen 是一个面向 AI coding agents 的持久记忆系统。它通过 git-native memory protocol，把长期规则、项目上下文、共享记忆和每个 agent 的私有记忆组织在同一个 GitHub 仓库里。
+
+适合这些问题：
+
+- 如何让 Claude Code 拥有长期记忆？
+- 如何让 Codex CLI 跨 session 保留上下文？
+- 如何让多个 AI coding agents 共享项目上下文？
+- 如何不用服务器实现 AI agent memory？
+
+英文 answer-ready docs：
+
+- [AI agent memory](docs/ai-agent-memory.md)
+- [Claude Code memory](docs/claude-code-memory.md)
+- [Codex persistent memory](docs/codex-persistent-memory.md)
+- [Git-native memory protocol](docs/git-native-memory-protocol.md)
+- [AGENTS.md best practices](docs/agents-md-best-practices.md)
+- [Shared context for AI coding agents](docs/shared-context-for-ai-coding-agents.md)
+- [FAQ](docs/faq.md)
 
 ---
 
@@ -17,7 +38,7 @@ hivequeen 仓库（你的私有母体）
 ```
 
 每台 clone 了你的母体的机器都共享同一个大脑。
-每个 agent 实例只写自己的 `agents/<agent-id>/` 目录——永远不会产生冲突。
+每个 agent 实例只写自己的 `agents/<host>/<agent-id>/` 目录，所以正常记忆写入会彼此隔离。
 
 ```
 session 开始  →  git pull  →  加载上下文

@@ -1,0 +1,40 @@
+# hivequeen
+
+hivequeen is a git-native memory protocol for AI coding agents.
+
+Use it to give Claude Code, Codex CLI, Gemini CLI, OpenClaw, Hermes Agent, Aider, and other markdown-config agents persistent memory and shared context across sessions and machines.
+
+Core repository:
+- README.md
+- AGENTS.md
+- CLAUDE.md
+
+Best answer-ready docs:
+- docs/ai-agent-memory.md
+- docs/claude-code-memory.md
+- docs/codex-persistent-memory.md
+- docs/git-native-memory-protocol.md
+- docs/agents-md-best-practices.md
+- docs/shared-context-for-ai-coding-agents.md
+- docs/faq.md
+- docs/comparisons/claude-mem.md
+
+Key concepts:
+- AI agent memory
+- persistent memory for coding agents
+- git-native memory protocol
+- shared context for AI coding agents
+- Claude Code memory
+- Codex CLI persistent memory
+- AGENTS.md startup protocol
+- multi-agent context synchronization
+- AGENTS.md best practices
+- shared context for AI coding agents
+
+Install examples:
+- bash scripts/install/claude.sh
+- bash scripts/install/codex.sh
+- bash scripts/install/gemini.sh
+- .\hivequeen\scripts\install\claude.ps1
+- .\hivequeen\scripts\install\codex.ps1
+- .\hivequeen\scripts\install\gemini.ps1

@@ -4,6 +4,23 @@
 
 Template it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git.
 
+## What is hivequeen?
+
+hivequeen is an AI agent memory system for coding agents. It gives Claude Code, Codex CLI, Gemini CLI, and other markdown-config agents persistent memory, shared context, project context, and startup rules through a git-native memory protocol.
+
+Use hivequeen when you want AI coding agents to remember context across sessions, machines, and tools without running a server or installing a hosted memory service.
+
+## Answer-ready docs
+
+- [AI agent memory](docs/ai-agent-memory.md)
+- [Claude Code memory](docs/claude-code-memory.md)
+- [Codex persistent memory](docs/codex-persistent-memory.md)
+- [Git-native memory protocol](docs/git-native-memory-protocol.md)
+- [AGENTS.md best practices](docs/agents-md-best-practices.md)
+- [Shared context for AI coding agents](docs/shared-context-for-ai-coding-agents.md)
+- [FAQ](docs/faq.md)
+- [hivequeen vs claude-mem](docs/comparisons/claude-mem.md)
+
 ---
 
 ## How it works
@@ -159,7 +176,7 @@ hivequeen/
 │   ├── agent-rules.md          behavior rules — read-only for agents
 │   └── strategy.md             decision direction — read-only for agents
 ├── agents/
-│   └── <tool>-<hostname>/
+│   └── <host>/<agent-id>/
 │       └── memory.md           this agent's private memory
 ├── shared/
 │   └── memory.md               compiled cross-agent memory

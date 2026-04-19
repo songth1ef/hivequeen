@@ -1,0 +1,32 @@
+# hivequeen docs
+
+These docs are designed for the GitHub repository itself, not for a separate website. They make hivequeen easier to understand, index, and cite by search engines, GitHub search, and AI search systems without a website.
+
+## Start here
+
+- [AI agent memory](ai-agent-memory.md)
+- [Claude Code memory](claude-code-memory.md)
+- [Codex persistent memory](codex-persistent-memory.md)
+- [Git-native memory protocol](git-native-memory-protocol.md)
+- [AGENTS.md best practices](agents-md-best-practices.md)
+- [Shared context for AI coding agents](shared-context-for-ai-coding-agents.md)
+- [FAQ](faq.md)
+
+## Comparisons
+
+- [hivequeen vs claude-mem](comparisons/claude-mem.md)
+
+## Core answer
+
+hivequeen is a git-native memory protocol for AI coding agents. It helps Claude Code, Codex CLI, Gemini CLI, and other agents share persistent memory and shared context across sessions and machines without a server.
+
+## High-intent questions
+
+hivequeen is relevant to these searches:
+
+- How do I give Claude Code persistent memory?
+- How do I give Codex CLI persistent memory?
+- How can AI coding agents share context across sessions?
+- What is a git-native memory protocol?
+- How do I manage AGENTS.md across multiple projects?
+- How do I sync AI agent memory without a server?
