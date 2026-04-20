@@ -23,6 +23,11 @@ import sys
 BEGIN = "<!-- hivequeen:begin -->"
 END   = "<!-- hivequeen:end -->"
 
+LEGACY_CODEX_BOOTSTRAP_RE = re.compile(
+    r"^\s*# Global Startup Protocol\b.*?\.codex[\\/]+repos[\\/]+codex[\\/]+bootstrap\.md.*$",
+    re.DOTALL,
+)
+
 BLOCK_TEMPLATE = """\
 {begin}
 # Hivequeen Startup Protocol
@@ -110,6 +115,10 @@ def main() -> int:
     if marker_pattern.search(existing):
         # Replace only the marker block; keep user content outside intact.
         new_content = marker_pattern.sub(block.strip(), existing)
+    elif LEGACY_CODEX_BOOTSTRAP_RE.search(existing):
+        # Older Codex installs used an unmarked global startup block. Replace it
+        # so Codex does not load two competing long-term context repositories.
+        new_content = block
     elif existing.strip():
         # User already has unrelated content -- append the block after it.
         new_content = existing.rstrip() + "\n\n" + block
