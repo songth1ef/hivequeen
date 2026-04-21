@@ -5,7 +5,7 @@
 # Captures selected Claude Code runtime artefacts into the agent's memory dir
 # so they can be versioned in git alongside distilled memory.
 #
-# Scope (opt-in via HIVEQUEEN_SYNC_LOCAL_HISTORY=1):
+# Scope (opt-in via ~/.hivequeen/settings.json → {"sync_local_history": true}):
 #   - ~/.claude/history.jsonl  -> local/history.jsonl  (redacted)
 #   - ~/.claude/plans/         -> local/plans/         (mirror)
 #   - ~/.claude/todos/         -> local/todos/         (mirror)
@@ -21,7 +21,6 @@
 # -----------------------------------------------------------------------------
 
 import json
-import os
 import re
 import shutil
 import sys
@@ -93,8 +92,22 @@ def mirror_dir(src: Path, dst: Path) -> int:
     return sum(1 for _ in dst.rglob("*") if _.is_file())
 
 
+def load_settings() -> dict:
+    """Read ~/.hivequeen/settings.json. Missing / malformed -> empty dict."""
+    path = Path.home() / ".hivequeen" / "settings.json"
+    if not path.exists():
+        return {}
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
 def main() -> int:
-    if os.environ.get("HIVEQUEEN_SYNC_LOCAL_HISTORY", "0") != "1":
+    settings = load_settings()
+    if not settings.get("sync_local_history"):
         return 0
     if len(sys.argv) < 4:
         print(
