@@ -2,7 +2,8 @@
 # -----------------------------------------------------------------------------
 # nestwork hook installer (shared by install-claude.sh and install-claude.ps1)
 #
-# Merges PreToolUse / PostToolUse / Stop hooks into Claude Code settings.json.
+# Merges SessionStart / PreToolUse / PostToolUse / Stop hooks into Claude Code
+# settings.json.
 # Safe to re-run: removes prior nestwork entries before inserting new ones.
 #
 # Usage:
@@ -33,6 +34,8 @@ def is_nestwork_hook(cmd: str, host: str, agent_id: str) -> bool:
     if "export-claude-mem.sh" in cmd:
         return True
     if "sync-local-history.sh" in cmd:
+        return True
+    if "session-start.sh" in cmd:
         return True
     if f"memory: update {agent_id}" in cmd or f"memory: update {host}/{agent_id}" in cmd:
         return True
@@ -69,10 +72,12 @@ def main() -> int:
     host           = sys.argv[3]
     agent_id       = sys.argv[4]
 
-    hook_script = f"{nestwork_path}/scripts/hooks/nestwork.sh"
-    export_mem  = f"{nestwork_path}/scripts/hooks/export-claude-mem.sh"
-    sync_local  = f"{nestwork_path}/scripts/hooks/sync-local-history.sh"
+    hook_script   = f"{nestwork_path}/scripts/hooks/nestwork.sh"
+    export_mem    = f"{nestwork_path}/scripts/hooks/export-claude-mem.sh"
+    sync_local    = f"{nestwork_path}/scripts/hooks/sync-local-history.sh"
+    session_start = f"{nestwork_path}/scripts/hooks/session-start.sh"
 
+    start_cmd = f"bash {session_start} {host} {agent_id}"
     pre_cmd  = f"bash {hook_script} pre {host} {agent_id}"
     post_cmd = f"bash {hook_script} post {host} {agent_id}"
     stop_cmd = (
@@ -90,14 +95,16 @@ def main() -> int:
         settings = json.load(f)
 
     hooks = settings.setdefault("hooks", {})
-    upsert(hooks, "PreToolUse",  "Write|Edit", pre_cmd,  host, agent_id)
-    upsert(hooks, "PostToolUse", "Write|Edit", post_cmd, host, agent_id)
-    upsert(hooks, "Stop",        "",           stop_cmd, host, agent_id)
+    upsert(hooks, "SessionStart", "",           start_cmd, host, agent_id)
+    upsert(hooks, "PreToolUse",   "Write|Edit", pre_cmd,   host, agent_id)
+    upsert(hooks, "PostToolUse",  "Write|Edit", post_cmd,  host, agent_id)
+    upsert(hooks, "Stop",         "",           stop_cmd,  host, agent_id)
 
     with open(settings_path, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2)
 
     print(f"nestwork hooks registered in {settings_path} for {host}/{agent_id}")
+    print(f"  SessionStart             -> {start_cmd}")
     print(f"  PreToolUse  (Write|Edit) -> {pre_cmd}")
     print(f"  PostToolUse (Write|Edit) -> {post_cmd}")
     print(f"  Stop                     -> {stop_cmd}")
