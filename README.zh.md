@@ -136,6 +136,19 @@ bash ~/hivequeen/scripts/install/aider.sh
 
 每台机器都执行一次。同一个母体，不同的 agent ID，共享同一个大脑。
 
+### Prompt 示例
+
+懒得手动走流程？把下面任一条粘进 Claude Code 会话即可：
+
+- **从零开始**
+  > 阅读 https://github.com/songth1ef/hivequeen 的 README，按 Quickstart
+  > 帮我从 template 新建私有 queen 仓库，clone 到本机，并完成 Claude Code 接入。
+
+- **发现可配置功能**
+  > 阅读 https://github.com/songth1ef/hivequeen 的 README，列出 hivequeen
+  > 所有可配置功能（hooks、可选同步、过滤等），并根据我当前机器场景建议
+  > 要不要开启。
+
 ---
 
 ## 自定义

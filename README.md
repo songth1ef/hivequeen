@@ -133,6 +133,21 @@ bash ~/hivequeen/scripts/install/aider.sh
 
 Repeat on every machine. Same queen, different agent IDs, one shared brain.
 
+### Prompt examples
+
+Skip the manual steps — paste one of these into any Claude Code session:
+
+- **From scratch**
+  > Read the README at https://github.com/songth1ef/hivequeen and follow
+  > Quickstart: create a private queen repo from the template, clone it
+  > on this machine, and install Claude Code.
+
+- **Discover configurable features**
+  > Read the README at https://github.com/songth1ef/hivequeen and list
+  > every configurable feature hivequeen exposes (hooks, optional syncs,
+  > filters, …). Then recommend which ones to enable for my current
+  > machine.
+
 ---
 
 ## Customize
