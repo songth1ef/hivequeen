@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -----------------------------------------------------------------------------
-# hivequeen memory distiller (LLM-oriented variant of compile.sh)
+# nestwork memory distiller (LLM-oriented variant of compile.sh)
 #
 # Walks every agents/<host>/<id>/memory.md, reads the current shared/memory.md, and
 # prints a single prompt suitable for an LLM agent to merge into a new
@@ -13,7 +13,7 @@
 #                                              # through a Claude/Gemini/etc.
 #                                              # session, commit the result)
 #
-# Attribution: originally drafted by a Codex agent in myhivequeen
+# Attribution: originally drafted by a Codex agent in a private Nestwork repo
 # (commit a1e5713) and ported into the shared template here.
 # -----------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ def main() -> int:
     print("--- DISTILLATION PROMPT BEGIN ---")
     print(f"Date: {now}")
     print("\n# TASK: Distill Agent Memories into Shared Memory")
-    print("\nYou are the Hive Queen distiller. Your goal is to merge individual "
+    print("\nYou are the Nestwork distiller. Your goal is to merge individual "
           "agent observations into the central `shared/memory.md` according to "
           "the protocol in `AGENTS.md` section 7.")
     print("\n## Rules:")

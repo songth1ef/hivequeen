@@ -2,7 +2,7 @@
 
 ## Short answer
 
-`AGENTS.md` should tell an AI coding agent what to load, what rules to follow, and where it may write. hivequeen uses `AGENTS.md` as a startup protocol for persistent AI agent memory.
+`AGENTS.md` should tell an AI coding agent what to load, what rules to follow, and where it may write. nestwork uses `AGENTS.md` as a startup protocol for persistent AI agent memory.
 
 ## What belongs in AGENTS.md?
 
@@ -17,9 +17,9 @@ Good `AGENTS.md` files include:
 
 Bad `AGENTS.md` files mix temporary notes, long chat history, vague preferences, and project implementation details that should live in separate docs.
 
-## hivequeen pattern
+## nestwork pattern
 
-hivequeen keeps `AGENTS.md` focused on protocol:
+nestwork keeps `AGENTS.md` focused on protocol:
 
 ```text
 1. Pull latest memory with git.

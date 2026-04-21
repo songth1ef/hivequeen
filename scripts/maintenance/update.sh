@@ -2,26 +2,26 @@
 set -e
 
 # -----------------------------------------------------------------------------
-# hivequeen updater
+# nestwork updater
 #
-# Pulls protocol-layer changes from upstream (songth1ef/hivequeen) into your
-# private queen. Never touches agents/, queen/, shared/, or projects/ -- those
+# Pulls protocol-layer changes from upstream (songth1ef/nestwork) into your
+# private nest. Never touches agents/, queen/, shared/, or projects/ -- those
 # belong to you.
 #
 # Usage:
-#   bash ~/my-queen/scripts/maintenance/update.sh
+#   bash ~/my-nest/scripts/maintenance/update.sh
 # -----------------------------------------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-UPSTREAM_URL="https://github.com/songth1ef/hivequeen.git"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+UPSTREAM_URL="https://github.com/songth1ef/nestwork.git"
 UPSTREAM_BRANCH="main"
 
 # Protocol-layer files that are safe to overwrite from upstream.
 # queen/, agents/, shared/, projects/ are intentionally excluded.
 #
 # .github/workflows/ is included so CI workflow fixes (e.g. the YAML
-# indentation bug fixed in hivequeen 43ae297) reach every private queen.
-# If you need per-queen workflow customization, do it via repo-level
+# indentation bug fixed in nestwork 43ae297) reach every private nest.
+# If you need per-nest workflow customization, do it via repo-level
 # Variables or Secrets rather than editing the YAML in place.
 PROTOCOL_FILES=(
   scripts/
@@ -33,7 +33,7 @@ PROTOCOL_FILES=(
   README.zh.md
 )
 
-cd "$HIVEQUEEN_PATH"
+cd "$NESTWORK_PATH"
 
 # -- 1. Ensure upstream remote exists -----------------------------------------
 if ! git remote get-url upstream > /dev/null 2>&1; then
@@ -81,7 +81,7 @@ echo "[ok] protocol layer updated"
 if git diff --cached --quiet; then
   echo "nothing to commit (files already identical)"
 else
-  git commit -m "chore: update hivequeen protocol from upstream"
+  git commit -m "chore: update nestwork protocol from upstream"
   echo "[ok] committed"
 fi
 

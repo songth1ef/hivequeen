@@ -2,17 +2,17 @@
 set -e
 
 # ---------------------------------------------
-# hivequeen x Gemini CLI installer
+# nestwork x Gemini CLI installer
 # ---------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 GEMINI_DIR="${GEMINI_HOME:-$HOME/.gemini}"
-IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" gemini)"
+IDENTITY="$(python3 "$NESTWORK_PATH/scripts/install/_identity.py" gemini)"
 HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
 AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
+AGENT_DIR="$NESTWORK_PATH/agents/$HOST/$AGENT_ID"
 
-echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> nestwork path : $NESTWORK_PATH"
 echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 echo "-> gemini home    : $GEMINI_DIR"
@@ -33,13 +33,13 @@ EOF
   echo "[ok] created $AGENT_DIR/memory.md"
 fi
 
-# 2. Inject hivequeen bootstrap into ~/.gemini/GEMINI.md (preserves user content).
+# 2. Inject nestwork bootstrap into ~/.gemini/GEMINI.md (preserves user content).
 mkdir -p "$GEMINI_DIR"
-python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$GEMINI_DIR/GEMINI.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
+python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
+  "$GEMINI_DIR/GEMINI.md" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
-echo "OK hivequeen installed for Gemini CLI"
+echo "OK nestwork installed for Gemini CLI"
 echo "   agent  : $HOST/$AGENT_ID"
 echo "   memory : $AGENT_DIR/memory.md"
 echo "   config : $GEMINI_DIR/GEMINI.md"

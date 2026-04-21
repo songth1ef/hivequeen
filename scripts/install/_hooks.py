@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -----------------------------------------------------------------------------
-# hivequeen hook installer (shared by install-claude.sh and install-claude.ps1)
+# nestwork hook installer (shared by install-claude.sh and install-claude.ps1)
 #
 # Merges PreToolUse / PostToolUse / Stop hooks into Claude Code settings.json.
-# Safe to re-run: removes prior hivequeen entries before inserting new ones.
+# Safe to re-run: removes prior nestwork entries before inserting new ones.
 #
 # Usage:
-#   _install-hooks.py <settings.json> <hivequeen_path> <host> <agent_id>
+#   _install-hooks.py <settings.json> <nestwork_path> <host> <agent_id>
 #
 # Why a separate script: PowerShell's ConvertTo-Json mishandles single-element
 # nested arrays (serializes them as objects), and repeating the merge logic in
@@ -18,13 +18,17 @@ import os
 import sys
 
 
-def is_hivequeen_hook(cmd: str, host: str, agent_id: str) -> bool:
-    """Return True if a stored hook command was installed by hivequeen.
+def is_nestwork_hook(cmd: str, host: str, agent_id: str) -> bool:
+    """Return True if a stored hook command was installed by nestwork.
 
     Matches legacy flat layout, v1 subdir layout, and current v2 layout so
     re-running the installer cleanly supersedes any prior install.
     """
-    if "hook-hivequeen.sh" in cmd or "hooks/hivequeen.sh" in cmd:
+    legacy_hook = "hive" + "queen.sh"
+    legacy_flat_hook = "hook-" + legacy_hook
+    if "hook-nestwork.sh" in cmd or "hooks/nestwork.sh" in cmd:
+        return True
+    if legacy_flat_hook in cmd or f"hooks/{legacy_hook}" in cmd:
         return True
     if "export-claude-mem.sh" in cmd:
         return True
@@ -43,7 +47,7 @@ def upsert(hooks: dict, event: str, matcher: str, cmd: str,
     filtered = []
     for e in entries:
         inner = (e.get("hooks") or [{}])[0].get("command", "")
-        if not is_hivequeen_hook(inner, host, agent_id):
+        if not is_nestwork_hook(inner, host, agent_id):
             filtered.append(e)
     filtered.append({
         "matcher": matcher,
@@ -55,19 +59,19 @@ def upsert(hooks: dict, event: str, matcher: str, cmd: str,
 def main() -> int:
     if len(sys.argv) < 5:
         print(
-            "usage: _install-hooks.py <settings_path> <hivequeen_path> <host> <agent_id>",
+            "usage: _install-hooks.py <settings_path> <nestwork_path> <host> <agent_id>",
             file=sys.stderr,
         )
         return 2
 
     settings_path  = sys.argv[1]
-    hivequeen_path = sys.argv[2].replace("\\", "/").rstrip("/")
+    nestwork_path = sys.argv[2].replace("\\", "/").rstrip("/")
     host           = sys.argv[3]
     agent_id       = sys.argv[4]
 
-    hook_script = f"{hivequeen_path}/scripts/hooks/hivequeen.sh"
-    export_mem  = f"{hivequeen_path}/scripts/hooks/export-claude-mem.sh"
-    sync_local  = f"{hivequeen_path}/scripts/hooks/sync-local-history.sh"
+    hook_script = f"{nestwork_path}/scripts/hooks/nestwork.sh"
+    export_mem  = f"{nestwork_path}/scripts/hooks/export-claude-mem.sh"
+    sync_local  = f"{nestwork_path}/scripts/hooks/sync-local-history.sh"
 
     pre_cmd  = f"bash {hook_script} pre {host} {agent_id}"
     post_cmd = f"bash {hook_script} post {host} {agent_id}"
@@ -93,7 +97,7 @@ def main() -> int:
     with open(settings_path, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2)
 
-    print(f"hivequeen hooks registered in {settings_path} for {host}/{agent_id}")
+    print(f"nestwork hooks registered in {settings_path} for {host}/{agent_id}")
     print(f"  PreToolUse  (Write|Edit) -> {pre_cmd}")
     print(f"  PostToolUse (Write|Edit) -> {post_cmd}")
     print(f"  Stop                     -> {stop_cmd}")

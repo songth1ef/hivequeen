@@ -17,8 +17,8 @@ class IdentityTests(unittest.TestCase):
         env = os.environ.copy()
         env["USERPROFILE"] = str(home)
         env["HOME"] = str(home)
-        env.pop("HIVEQUEEN_HOST", None)
-        env.pop("HIVEQUEEN_AGENT_ID", None)
+        env.pop("NESTWORK_HOST", None)
+        env.pop("NESTWORK_AGENT_ID", None)
 
         completed = subprocess.run(
             [sys.executable, str(IDENTITY), tool, *args],
@@ -39,21 +39,21 @@ class IdentityTests(unittest.TestCase):
             second = self.run_identity(home, "codex")
 
             self.assertEqual(first, second)
-            self.assertEqual((home / ".hivequeen_id").read_text(encoding="utf-8").splitlines(), first)
-            self.assertFalse((home / ".hivequeen_host").exists())
+            self.assertEqual((home / ".nestwork_id").read_text(encoding="utf-8").splitlines(), first)
+            self.assertFalse((home / ".nestwork_host").exists())
 
     def test_migrates_split_v2_identity_files_to_single_file(self) -> None:
         TMP_ROOT.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=TMP_ROOT) as tmp:
             home = Path(tmp)
-            (home / ".hivequeen_host").write_text("desktop-rkv5ls4\n", encoding="utf-8")
-            (home / ".hivequeen_id").write_text("claude-rb46\n", encoding="utf-8")
+            (home / ".nestwork_host").write_text("desktop-rkv5ls4\n", encoding="utf-8")
+            (home / ".nestwork_id").write_text("claude-rb46\n", encoding="utf-8")
 
             identity = self.run_identity(home, "claude", "--with-suffix")
 
             self.assertEqual(identity, ["desktop-rkv5ls4", "claude-rb46"])
             self.assertEqual(
-                (home / ".hivequeen_id").read_text(encoding="utf-8").splitlines(),
+                (home / ".nestwork_id").read_text(encoding="utf-8").splitlines(),
                 ["desktop-rkv5ls4", "claude-rb46"],
             )
 

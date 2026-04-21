@@ -1,15 +1,15 @@
 # -----------------------------------------------------------------------------
-# hivequeen x Aider installer (Windows)
+# nestwork x Aider installer (Windows)
 #
 # See install-aider.sh for rationale.
 # -----------------------------------------------------------------------------
 
 $ErrorActionPreference = "Stop"
 
-$HivequeenPath  = (Resolve-Path "$PSScriptRoot\..\..").Path
-$BootstrapFile  = "$env:USERPROFILE\.aider-hivequeen.md"
+$NestworkPath  = (Resolve-Path "$PSScriptRoot\..\..").Path
+$BootstrapFile  = "$env:USERPROFILE\.aider-nestwork.md"
 
-& (Join-Path $HivequeenPath "scripts\install\generic.ps1") aider $BootstrapFile
+& (Join-Path $NestworkPath "scripts\install\generic.ps1") aider $BootstrapFile
 if ($LASTEXITCODE -ne 0) {
     throw "generic installer failed (exit $LASTEXITCODE)"
 }

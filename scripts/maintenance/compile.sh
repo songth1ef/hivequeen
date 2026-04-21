@@ -2,13 +2,13 @@
 set -e
 
 # ---------------------------------------------
-# hivequeen compile
+# nestwork compile
 # Aggregates all agents/*/*/memory.md into shared/memory.md
 # ---------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SHARED="$HIVEQUEEN_PATH/shared/memory.md"
-AGENTS_DIR="$HIVEQUEEN_PATH/agents"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SHARED="$NESTWORK_PATH/shared/memory.md"
+AGENTS_DIR="$NESTWORK_PATH/agents"
 
 echo "-> scanning $AGENTS_DIR"
 
@@ -52,7 +52,7 @@ printf "%b" "$OUTPUT" > "$SHARED"
 echo "[ok] compiled -> $SHARED"
 
 # Commit and push
-cd "$HIVEQUEEN_PATH"
+cd "$NESTWORK_PATH"
 git add shared/memory.md
 git diff --cached --quiet -- shared/memory.md || \
   git commit -m "memory: compile shared $(date -u +%Y-%m-%d)" -- shared/memory.md

@@ -1,4 +1,5 @@
 import re
+import shutil
 import subprocess
 import unittest
 from pathlib import Path
@@ -17,10 +18,14 @@ class CodexWindowsInstallerTests(unittest.TestCase):
         self.assertRegex(
             content,
             r'_bootstrap\.py"\)\s+`\s+"\$CodexAgents"',
-            msg="Codex installer should inject hivequeen bootstrap into ~/.codex/AGENTS.md",
+            msg="Codex installer should inject nestwork bootstrap into ~/.codex/AGENTS.md",
         )
 
     def test_end_hook_command_parses_in_windows_powershell(self) -> None:
+        powershell = shutil.which("powershell.exe") or shutil.which("powershell")
+        if not powershell:
+            self.skipTest("Windows PowerShell is not available in this environment")
+
         content = CODEX_INSTALLER.read_text(encoding="utf-8")
         match = re.search(r'\$HookCmd = "(?P<hook>(?:[^"`]|`.)*)"', content)
         self.assertIsNotNone(match, "Could not find $HookCmd in codex.ps1")
@@ -28,9 +33,9 @@ class CodexWindowsInstallerTests(unittest.TestCase):
         hook = match.group("hook")
         parser = (
             "$ErrorActionPreference='Stop'; "
-            "$HivequeenPath='C:\\tmp\\hivequeen'; "
+            "$NestworkPath='C:\\tmp\\nestwork'; "
             "$AgentRel='agents/desktop/codex'; "
-            "$HiveHost='desktop'; "
+            "$NestHost='desktop'; "
             "$AgentId='codex'; "
             f"$hook=\"{hook}\"; "
             "[scriptblock]::Create($hook) | Out-Null"
@@ -38,7 +43,7 @@ class CodexWindowsInstallerTests(unittest.TestCase):
 
         completed = subprocess.run(
             [
-                r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                powershell,
                 "-NoProfile",
                 "-Command",
                 parser,

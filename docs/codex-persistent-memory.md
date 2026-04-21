@@ -2,7 +2,7 @@
 
 ## Short answer
 
-hivequeen gives Codex CLI persistent memory by writing a startup protocol into `~/.codex/AGENTS.md`, keeping `~/.codex/instructions.md` as a compatibility entrypoint, and configuring a session end hook in `~/.codex/config.json`.
+nestwork gives Codex CLI persistent memory by writing a startup protocol into `~/.codex/AGENTS.md`, keeping `~/.codex/instructions.md` as a compatibility entrypoint, and configuring a session end hook in `~/.codex/config.json`.
 When local history sync is enabled for the host, the same hook also captures `~/.codex/history.jsonl` into the Codex agent's `local/history.jsonl`.
 
 ## How it works with Codex CLI
@@ -18,13 +18,13 @@ The Codex installer:
 Install on macOS or Linux:
 
 ```bash
-bash ~/hivequeen/scripts/install/codex.sh
+bash ~/nestwork/scripts/install/codex.sh
 ```
 
 Install on Windows:
 
 ```powershell
-.\hivequeen\scripts\install\codex.ps1
+.\nestwork\scripts\install\codex.ps1
 ```
 
 ## What Codex remembers

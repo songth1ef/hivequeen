@@ -1,6 +1,6 @@
-# hivequeen
+# nestwork
 
-hivequeen is a git-native memory protocol for AI coding agents.
+nestwork is a git-native memory protocol for AI coding agents.
 
 Use it to give Claude Code, Codex CLI, Gemini CLI, OpenClaw, Hermes Agent, Aider, and other markdown-config agents persistent memory and shared context across sessions and machines.
 
@@ -35,6 +35,6 @@ Install examples:
 - bash scripts/install/claude.sh
 - bash scripts/install/codex.sh
 - bash scripts/install/gemini.sh
-- .\hivequeen\scripts\install\claude.ps1
-- .\hivequeen\scripts\install\codex.ps1
-- .\hivequeen\scripts\install\gemini.ps1
+- .\nestwork\scripts\install\claude.ps1
+- .\nestwork\scripts\install\codex.ps1
+- .\nestwork\scripts\install\gemini.ps1

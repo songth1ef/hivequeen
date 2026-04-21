@@ -1,10 +1,10 @@
-# Project: hivequeen
+# Project: Nestwork
 
 ## 一句话
 git 原生的 AI agent 上下文协议。Use this template 即继承，clone 即连接，所有 agent 共用同一个大脑。
 
 ## 仓库
-https://github.com/songth1ef/hivequeen
+https://github.com/songth1ef/nestwork
 
 ## 技术栈
 Shell / PowerShell / Markdown / git
@@ -32,5 +32,5 @@ Shell / PowerShell / Markdown / git
 - 文件超过行数限制时必须拆分为 topic 文件 + 索引
 
 ## 竞品对比关键点
-现有方案（claude-mem、DiffMem 等）都是插件思维，hivequeen 是协议思维。
+现有方案（claude-mem、DiffMem 等）都是插件思维，nestwork 是协议思维。
 唯一同时具备：git session 同步 + 分层优先级规则 + 多工具支持 + template 分发模型。

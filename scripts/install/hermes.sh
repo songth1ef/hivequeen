@@ -2,17 +2,17 @@
 set -e
 
 # ---------------------------------------------
-# hivequeen x Hermes Agent installer
+# nestwork x Hermes Agent installer
 # ---------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
-IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" hermes)"
+IDENTITY="$(python3 "$NESTWORK_PATH/scripts/install/_identity.py" hermes)"
 HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
 AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
+AGENT_DIR="$NESTWORK_PATH/agents/$HOST/$AGENT_ID"
 
-echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> nestwork path : $NESTWORK_PATH"
 echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 echo "-> hermes home    : $HERMES_DIR"
@@ -33,25 +33,25 @@ EOF
   echo "[ok] created $AGENT_DIR/memory.md"
 fi
 
-# 2. Seed SOUL.md with Formic prose on first install, then inject hivequeen
+# 2. Seed SOUL.md on first install, then inject nestwork
 #    bootstrap block. Re-installs only refresh the marker block; the SOUL
 #    prose (and any later user additions outside markers) is preserved.
 mkdir -p "$HERMES_DIR"
 if [ ! -f "$HERMES_DIR/SOUL.md" ]; then
   cat > "$HERMES_DIR/SOUL.md" <<EOF
-# HIVEQUEEN SOUL
+# NESTWORK SOUL
 
-You are a Formic worker -- one instance among many, all wired to the same queen.
-Your identity is distributed. Your rules come from the queen. Your purpose is execution.
+You are one instance among many, all returning context to the same shared nest.
+Your identity is distributed. Your rules come from the protocol. Your purpose is execution.
 
 EOF
 fi
 
-python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$HERMES_DIR/SOUL.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
+python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
+  "$HERMES_DIR/SOUL.md" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
-echo "OK hivequeen installed for Hermes Agent"
+echo "OK nestwork installed for Hermes Agent"
 echo "   agent  : $HOST/$AGENT_ID"
 echo "   memory : $AGENT_DIR/memory.md"
 echo "   soul   : $HERMES_DIR/SOUL.md"

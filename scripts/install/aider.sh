@@ -2,7 +2,7 @@
 set -e
 
 # -----------------------------------------------------------------------------
-# hivequeen x Aider installer
+# nestwork x Aider installer
 #
 # Aider doesn't auto-load a single global "instructions" file the way Claude
 # Code or Gemini CLI do. Instead it takes a YAML config (~/.aider.conf.yml)
@@ -11,7 +11,7 @@ set -e
 #
 # Approach:
 #   - Create an aider-specific agent-id and memory dir
-#   - Write the hivequeen bootstrap into ~/.aider-hivequeen.md (via the
+#   - Write the nestwork bootstrap into ~/.aider-nestwork.md (via the
 #     generic bootstrap helper, so the marker-block preservation still works)
 #   - Print instructions for three ways to wire it into the user's aider
 #     workflow -- we do NOT silently mutate ~/.aider.conf.yml because the
@@ -19,10 +19,10 @@ set -e
 #     shell is fragile
 # -----------------------------------------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-BOOTSTRAP_FILE="$HOME/.aider-hivequeen.md"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BOOTSTRAP_FILE="$HOME/.aider-nestwork.md"
 
-bash "$HIVEQUEEN_PATH/scripts/install/generic.sh" aider "$BOOTSTRAP_FILE"
+bash "$NESTWORK_PATH/scripts/install/generic.sh" aider "$BOOTSTRAP_FILE"
 
 cat <<INSTRUCTIONS
 

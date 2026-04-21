@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -----------------------------------------------------------------------------
-# hivequeen local-history sync
+# nestwork local-history sync
 #
 # Captures selected agent runtime artefacts into the agent's memory dir
 # so they can be versioned in git alongside distilled memory.
@@ -15,7 +15,7 @@
 #   - ~/.claude/tasks/   (subagent mid-flight state)
 #
 # Usage:
-#   sync-local-history.py <hivequeen_path> <host> <agent_id>
+#   sync-local-history.py <nestwork_path> <host> <agent_id>
 #
 # Redaction applied to history.jsonl:
 #   - pastedContents field dropped
@@ -139,21 +139,21 @@ def runtime_source(agent_id: str) -> tuple[str, Path, bool]:
 def main() -> int:
     if len(sys.argv) < 4:
         print(
-            "usage: sync-local-history.py <hivequeen_path> <host> <agent_id>",
+            "usage: sync-local-history.py <nestwork_path> <host> <agent_id>",
             file=sys.stderr,
         )
         return 2
 
-    hivequeen_path = Path(sys.argv[1])
+    nestwork_path = Path(sys.argv[1])
     host = sys.argv[2]
     agent_id = sys.argv[3]
 
-    settings_path = hivequeen_path / "agents" / host / "settings.json"
+    settings_path = nestwork_path / "agents" / host / "settings.json"
     if not load_settings(settings_path).get("sync_local_history"):
         return 0
 
     runtime, runtime_home, sync_plans = runtime_source(agent_id)
-    local_dir = hivequeen_path / "agents" / host / agent_id / "local"
+    local_dir = nestwork_path / "agents" / host / agent_id / "local"
     local_dir.mkdir(parents=True, exist_ok=True)
 
     n_hist = redact_history(runtime_home / "history.jsonl", local_dir / "history.jsonl")

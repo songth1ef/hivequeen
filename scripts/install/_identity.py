@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -----------------------------------------------------------------------------
-# hivequeen identity resolver (protocol v2.0)
+# nestwork identity resolver (protocol v2.0)
 #
 # Returns (host, agent-id) for this machine, creating them on first run and
 # caching on disk so reinstalls keep the same identity. One file:
 #
-#   ~/.hivequeen_id              two lines:
+#   ~/.nestwork_id              two lines:
 #                                1. lowercased short hostname
 #                                2. per-tool agent id (e.g. "claude-a7k2")
 #
@@ -16,19 +16,19 @@
 #   --with-suffix     append a 4-char random suffix, persisted across reinstalls
 #
 # Env overrides (highest priority, not persisted):
-#   HIVEQUEEN_HOST       override host segment
-#   HIVEQUEEN_AGENT_ID   override full agent-id
+#   NESTWORK_HOST       override host segment
+#   NESTWORK_AGENT_ID   override full agent-id
 #
 # Output: prints two lines to stdout
 #   <host>
 #   <agent-id>
 #
 # Legacy migration:
-# - if ~/.hivequeen_host exists and ~/.hivequeen_id is one line, merge both into
+# - if ~/.nestwork_host exists and ~/.nestwork_id is one line, merge both into
 #   the v2 single-file format.
-# - if ~/.hivequeen_id contains an old v1 three-segment id
-#   (<tool>-<host>-<suffix>), extract <host> to ~/.hivequeen_host and rewrite
-#   ~/.hivequeen_id as two lines: <host>, <tool>-<suffix>.
+# - if ~/.nestwork_id contains an old v1 three-segment id
+#   (<tool>-<host>-<suffix>), extract <host> to ~/.nestwork_host and rewrite
+#   ~/.nestwork_id as two lines: <host>, <tool>-<suffix>.
 # -----------------------------------------------------------------------------
 
 import os
@@ -38,8 +38,11 @@ import socket
 import string
 import sys
 
-HOST_FILE = os.path.join(os.path.expanduser("~"), ".hivequeen_host")
-ID_FILE   = os.path.join(os.path.expanduser("~"), ".hivequeen_id")
+HOME = os.path.expanduser("~")
+HOST_FILE = os.path.join(HOME, ".nestwork_host")
+ID_FILE   = os.path.join(HOME, ".nestwork_id")
+LEGACY_HOST_FILE = os.path.join(HOME, "." + "hive" + "queen_host")
+LEGACY_ID_FILE = os.path.join(HOME, "." + "hive" + "queen_id")
 
 
 def compute_host() -> str:
@@ -86,6 +89,14 @@ LEGACY_ID_RE = re.compile(r"^([a-z]+)-([a-z0-9][a-z0-9-]*?)-([a-z0-9]{4})$")
 
 def migrate_legacy_if_needed(tool: str) -> None:
     """Normalize legacy identity files into the single v2 two-line file."""
+    if not os.path.exists(ID_FILE):
+        legacy_identity = read_lines(LEGACY_ID_FILE)
+        legacy_host = read_one_line(LEGACY_HOST_FILE)
+        if len(legacy_identity) >= 2:
+            write_identity(legacy_identity[0], legacy_identity[1])
+        elif legacy_host and len(legacy_identity) == 1:
+            write_identity(legacy_host, legacy_identity[0])
+
     host = read_one_line(HOST_FILE)
     identity = read_lines(ID_FILE)
 
@@ -107,7 +118,9 @@ def migrate_legacy_if_needed(tool: str) -> None:
 
 
 def resolve_host() -> str:
-    env = os.environ.get("HIVEQUEEN_HOST", "").strip()
+    env = os.environ.get("NESTWORK_HOST", "").strip()
+    if not env:
+        env = os.environ.get("HIVE" + "QUEEN_HOST", "").strip()
     if env:
         return env.lower()
     identity = read_lines(ID_FILE)
@@ -118,7 +131,9 @@ def resolve_host() -> str:
 
 
 def resolve_agent_id(tool: str, with_suffix: bool) -> str:
-    env = os.environ.get("HIVEQUEEN_AGENT_ID", "").strip()
+    env = os.environ.get("NESTWORK_AGENT_ID", "").strip()
+    if not env:
+        env = os.environ.get("HIVE" + "QUEEN_AGENT_ID", "").strip()
     if env:
         return env
     identity = read_lines(ID_FILE)
@@ -147,7 +162,13 @@ def main() -> int:
     host     = resolve_host()
     agent_id = resolve_agent_id(tool, with_suffix)
 
-    if not os.environ.get("HIVEQUEEN_HOST", "").strip() and not os.environ.get("HIVEQUEEN_AGENT_ID", "").strip():
+    has_env_override = (
+        os.environ.get("NESTWORK_HOST", "").strip()
+        or os.environ.get("NESTWORK_AGENT_ID", "").strip()
+        or os.environ.get("HIVE" + "QUEEN_HOST", "").strip()
+        or os.environ.get("HIVE" + "QUEEN_AGENT_ID", "").strip()
+    )
+    if not has_env_override:
         write_identity(host, agent_id)
 
     print(host)

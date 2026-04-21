@@ -1,14 +1,14 @@
-# hivequeen
+# nestwork
 
 [English](README.md) | 中文
 
 版本：v0.2.0 | 协议：2.0
 
-模板即继承，clone 即连接，所有 agent 共用同一个大脑。hivequeen 是 git 原生的 AI agent memory 协议，用于 Claude Code、Codex CLI、Gemini CLI 等 AI coding agents 的 persistent memory 与 shared context，无需插件，无需服务器。
+模板即继承，clone 即连接，所有 agent 共用同一个大脑。nestwork 是 git 原生的 AI agent memory 协议，用于 Claude Code、Codex CLI、Gemini CLI 等 AI coding agents 的 persistent memory 与 shared context，无需插件，无需服务器。
 
-## hivequeen 是什么？
+## nestwork 是什么？
 
-hivequeen 是一个面向 AI coding agents 的持久记忆系统。它通过 git-native memory protocol，把长期规则、项目上下文、共享记忆和每个 agent 的私有记忆组织在同一个 GitHub 仓库里。
+nestwork 是一个面向 AI coding agents 的持久记忆系统。它通过 git-native memory protocol，把长期规则、项目上下文、共享记忆和每个 agent 的私有记忆组织在同一个 GitHub 仓库里。
 
 适合这些问题：
 
@@ -32,7 +32,7 @@ hivequeen 是一个面向 AI coding agents 的持久记忆系统。它通过 git
 ## 工作原理
 
 ```
-hivequeen 仓库（你的私有母体）
+nestwork 仓库（你的私有母体）
 ├── queen/          ← 只读规则与策略（由你维护）
 ├── agents/         ← 每个 agent 只写自己的目录
 ├── shared/         ← 所有 agent 的编译记忆（只读）
@@ -59,76 +59,76 @@ visibility 选 **Private** — 你的记忆只属于你。
 > **为什么不用 Fork？** Fork 默认是公开的，且与上游仓库保持关联。
 > 从模板创建的私有仓库完全归你所有。
 >
-> 当 hivequeen 发布更新时，`git merge upstream/main` 会与你刻意定制的
+> 当 nestwork 发布更新时，`git merge upstream/main` 会与你刻意定制的
 > `queen/strategy.md`、`agents/`、`shared/` 产生冲突。
 > `update.sh` 脚本只同步协议层，你的私有数据完全不受影响。
 
 ### 2. Clone 到每台机器
 
 ```bash
-git clone git@github.com:<你的用户名>/hivequeen.git ~/hivequeen
+git clone git@github.com:<你的用户名>/nestwork.git ~/nestwork
 ```
 
 ### 3. 安装到你的 agent 工具
 
 **Claude Code（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install/claude.sh
+bash ~/nestwork/scripts/install/claude.sh
 ```
 
 **Claude Code（Windows）**
 ```powershell
-.\hivequeen\scripts\install\claude.ps1
+.\nestwork\scripts\install\claude.ps1
 ```
 
 **Codex（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install/codex.sh
+bash ~/nestwork/scripts/install/codex.sh
 ```
 
 **Codex（Windows）**
 ```powershell
-.\hivequeen\scripts\install\codex.ps1
+.\nestwork\scripts\install\codex.ps1
 ```
 
 **OpenClaw（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install/openclaw.sh
+bash ~/nestwork/scripts/install/openclaw.sh
 ```
 
 **OpenClaw（Windows）**
 ```powershell
-.\hivequeen\scripts\install\openclaw.ps1
+.\nestwork\scripts\install\openclaw.ps1
 ```
 
 **Hermes Agent（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install/hermes.sh
+bash ~/nestwork/scripts/install/hermes.sh
 ```
 
 **Hermes Agent（Windows）**
 ```powershell
-.\hivequeen\scripts\install\hermes.ps1
+.\nestwork\scripts\install\hermes.ps1
 ```
 
 **Gemini CLI（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install/gemini.sh
+bash ~/nestwork/scripts/install/gemini.sh
 ```
 
 **Gemini CLI（Windows）**
 ```powershell
-.\hivequeen\scripts\install\gemini.ps1
+.\nestwork\scripts\install\gemini.ps1
 ```
 
 **Aider（macOS / Linux）**
 ```bash
-bash ~/hivequeen/scripts/install/aider.sh
+bash ~/nestwork/scripts/install/aider.sh
 ```
 
 **Aider（Windows）**
 ```powershell
-.\hivequeen\scripts\install\aider.ps1
+.\nestwork\scripts\install\aider.ps1
 ```
 
 **其他 markdown-config 类 CLI**（Qwen Code、OpenCode、Trae、Kimi Code 等）——
@@ -141,11 +141,11 @@ bash ~/hivequeen/scripts/install/aider.sh
 懒得手动走流程？把下面任一条粘进 Claude Code 会话即可：
 
 - **从零开始**
-  > 阅读 https://github.com/songth1ef/hivequeen 的 README，按 Quickstart
+  > 阅读 https://github.com/songth1ef/nestwork 的 README，按 Quickstart
   > 帮我从 template 新建私有 queen 仓库，clone 到本机，并完成 Claude Code 接入。
 
 - **发现可配置功能**
-  > 阅读 https://github.com/songth1ef/hivequeen 的 README，列出 hivequeen
+  > 阅读 https://github.com/songth1ef/nestwork 的 README，列出 nestwork
   > 所有可配置功能（hooks、可选同步、过滤等），并根据我当前机器场景建议
   > 要不要开启。
 
@@ -170,11 +170,11 @@ bash ~/hivequeen/scripts/install/aider.sh
 
 ```bash
 # 纯拼接：把 agents/*/memory.md 拼接，commit，push
-bash ~/hivequeen/scripts/maintenance/compile.sh
+bash ~/nestwork/scripts/maintenance/compile.sh
 
 # LLM 版：打印一段蒸馏 prompt，喂给任一 agent 会话，
 # 让 agent 输出合并后的 shared/memory.md 再提交
-python3 ~/hivequeen/scripts/maintenance/distill.py
+python3 ~/nestwork/scripts/maintenance/distill.py
 ```
 
 两种方式都不会修改原始的 agent memory。所有 agent 在下次 `git pull`
@@ -185,7 +185,7 @@ python3 ~/hivequeen/scripts/maintenance/distill.py
 ## 目录结构
 
 ```
-hivequeen/
+nestwork/
 ├── AGENTS.md                   bootstrap 唯一来源（Codex、OpenClaw、Gemini 等）
 ├── CLAUDE.md                   AGENTS.md 的逐行镜像（Claude Code 认这个名字）
 ├── SOUL.md                     Hermes 的简短人格文件
@@ -211,7 +211,7 @@ hivequeen/
     │   ├── _bootstrap.py          共享 bootstrap 注入器
     │   └── _hooks.py              共享 hook 注册器（Claude Code）
     ├── hooks/                     运行时 hook
-    │   ├── hivequeen.sh           pre/post/stop 统一入口
+    │   ├── nestwork.sh           pre/post/stop 统一入口
     │   ├── _match-file.py         stdin 文件匹配器
     │   ├── export-claude-mem.sh   claude-mem 可选桥接
     │   ├── sync-local-history.sh  本地历史同步（wrapper，可选）
@@ -244,7 +244,7 @@ agents/macbook/claude/
 ├── memory.md          ← 变为索引
 ├── user_profile.md
 ├── feedback_collab.md
-└── project_hivequeen.md
+└── project_nestwork.md
 ```
 
 拆分后的 `memory.md`：
@@ -253,7 +253,7 @@ agents/macbook/claude/
 
 - [用户档案](user_profile.md) — 角色、技术栈、偏好
 - [协作习惯](feedback_collab.md) — 工作方式、修正记录
-- [项目：hivequeen](project_hivequeen.md) — 目标、决策
+- [项目：nestwork](project_nestwork.md) — 目标、决策
 ```
 
 agent 先读索引，按需跟进相关 topic 文件。
@@ -283,7 +283,7 @@ agent 先读索引，按需跟进相关 topic 文件。
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | 有安装入口，暂未个人使用和验证 |
 | OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | 有安装入口，暂未个人使用和验证 |
 | Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | 有安装入口，暂未个人使用和验证 |
-| Aider | 开源 | `~/.aider-hivequeen.md`（通过 `.aider.conf.yml` 的 `read:` 接入） | `bash scripts/install/aider.sh` | 有安装入口，暂未个人使用和验证 |
+| Aider | 开源 | `~/.aider-nestwork.md`（通过 `.aider.conf.yml` 的 `read:` 接入） | `bash scripts/install/aider.sh` | 有安装入口，暂未个人使用和验证 |
 
 当前真正主动适配的是 Claude Code 和 Codex CLI。其他安装器先作为后续适配的
 参考入口保留；用户可以自行适配，也可以让 LLM 根据目标工具当前配置格式辅助适配。
@@ -347,9 +347,9 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 | 工具 | 目标路径 | 安装方式 |
 |---|---|---|
-| Cursor | `.cursor/rules/hivequeen.md` | `ln -s AGENTS.md .cursor/rules/hivequeen.md` |
-| Windsurf | `.windsurf/rules/hivequeen.md` | `ln -s AGENTS.md .windsurf/rules/hivequeen.md` |
-| Cline（VS Code） | `.clinerules/hivequeen.md` | `ln -s AGENTS.md .clinerules/hivequeen.md` |
+| Cursor | `.cursor/rules/nestwork.md` | `ln -s AGENTS.md .cursor/rules/nestwork.md` |
+| Windsurf | `.windsurf/rules/nestwork.md` | `ln -s AGENTS.md .windsurf/rules/nestwork.md` |
+| Cline（VS Code） | `.clinerules/nestwork.md` | `ln -s AGENTS.md .clinerules/nestwork.md` |
 | GitHub Copilot（repo 级） | `.github/copilot-instructions.md` | `ln -s AGENTS.md .github/copilot-instructions.md` |
 
 ### 不支持（原因）
@@ -358,7 +358,7 @@ bash scripts/install/generic.sh <prefix> <config-path>
 |---|---|
 | GitHub Copilot CLI（`gh copilot`） | Q&A 模式，没有持久化指令文件机制 |
 | Antigravity | IDE 为主，CLI 入口是项目级的，对外 bootstrap 机制未公开 |
-| CloudBase AI CLI | 本身是网关，调用下游 CLI —— 在下游工具上装 hivequeen 即可 |
+| CloudBase AI CLI | 本身是网关，调用下游 CLI —— 在下游工具上装 nestwork 即可 |
 | ChatDev | 模拟「虚拟软件公司」的工作流编排，不是持久化单 agent 循环 |
 
 ---
@@ -377,8 +377,8 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 脚本会：
 - 创建本机该工具的私有记忆目录 `agents/<prefix>-<hostname>/memory.md`
-- 把 hivequeen bootstrap 块注入到 `<config-path>` 的
-  `<!-- hivequeen:begin -->` / `<!-- hivequeen:end -->` 标记之间，保留用户已有内容
+- 把 nestwork bootstrap 块注入到 `<config-path>` 的
+  `<!-- nestwork:begin -->` / `<!-- nestwork:end -->` 标记之间，保留用户已有内容
 - **不注册 hooks**：只有 Claude Code 有 hook 系统。其他工具靠 bootstrap 块里写的
   git commit/push 指令，由 agent 在会话结束时自行执行
 

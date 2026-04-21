@@ -1,6 +1,6 @@
-# hivequeen docs
+# nestwork docs
 
-These docs are designed for the GitHub repository itself, not for a separate website. They make hivequeen easier to understand, index, and cite by search engines, GitHub search, and AI search systems without a website.
+These docs are designed for the GitHub repository itself, not for a separate website. They make nestwork easier to understand, index, and cite by search engines, GitHub search, and AI search systems without a website.
 
 ## Start here
 
@@ -14,15 +14,15 @@ These docs are designed for the GitHub repository itself, not for a separate web
 
 ## Comparisons
 
-- [hivequeen vs claude-mem](comparisons/claude-mem.md)
+- [nestwork vs claude-mem](comparisons/claude-mem.md)
 
 ## Core answer
 
-hivequeen is a git-native memory protocol for AI coding agents. It helps Claude Code, Codex CLI, Gemini CLI, and other agents share persistent memory and shared context across sessions and machines without a server.
+nestwork is a git-native memory protocol for AI coding agents. It helps Claude Code, Codex CLI, Gemini CLI, and other agents share persistent memory and shared context across sessions and machines without a server.
 
 ## High-intent questions
 
-hivequeen is relevant to these searches:
+nestwork is relevant to these searches:
 
 - How do I give Claude Code persistent memory?
 - How do I give Codex CLI persistent memory?

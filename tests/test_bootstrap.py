@@ -32,7 +32,7 @@ Execution requirements:
                     sys.executable,
                     str(BOOTSTRAP),
                     str(target),
-                    "F:/code/playground/myhivequeen",
+                    "F:/code/playground/mynestwork",
                     "desktop-rkv5ls4",
                     "codex",
                 ],
@@ -44,20 +44,20 @@ Execution requirements:
             updated = target.read_text(encoding="utf-8")
             self.assertNotIn(".codex\\repos\\codex\\bootstrap.md", updated)
             self.assertNotIn("Global Startup Protocol", updated)
-            self.assertIn("Hivequeen Startup Protocol", updated)
+            self.assertIn("Nestwork Startup Protocol", updated)
         finally:
             target.unlink(missing_ok=True)
 
-    def test_removes_legacy_codex_startup_when_hivequeen_marker_exists(self) -> None:
+    def test_removes_legacy_codex_startup_when_nestwork_marker_exists(self) -> None:
         existing = """# Global Startup Protocol
 
 Before starting analysis, planning, or implementation in a new coding session, load:
 
 - `C:\\Users\\Administrator\\.codex\\repos\\codex\\bootstrap.md`
 
-<!-- hivequeen:begin -->
-old hivequeen block
-<!-- hivequeen:end -->
+<!-- nestwork:begin -->
+old nestwork block
+<!-- nestwork:end -->
 """
 
         target = TMP_ROOT / "bootstrap-test-AGENTS-with-marker.md"
@@ -70,7 +70,7 @@ old hivequeen block
                     sys.executable,
                     str(BOOTSTRAP),
                     str(target),
-                    "F:/code/playground/myhivequeen",
+                    "F:/code/playground/mynestwork",
                     "desktop-rkv5ls4",
                     "codex",
                 ],
@@ -82,8 +82,8 @@ old hivequeen block
             updated = target.read_text(encoding="utf-8")
             self.assertNotIn(".codex\\repos\\codex\\bootstrap.md", updated)
             self.assertNotIn("Global Startup Protocol", updated)
-            self.assertNotIn("old hivequeen block", updated)
-            self.assertIn("Hivequeen Startup Protocol", updated)
+            self.assertNotIn("old nestwork block", updated)
+            self.assertIn("Nestwork Startup Protocol", updated)
         finally:
             target.unlink(missing_ok=True)
 

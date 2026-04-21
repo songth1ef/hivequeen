@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 # -----------------------------------------------------------------------------
-# hivequeen bootstrap injector (shared by install-claude / install-gemini / ...)
+# nestwork bootstrap injector (shared by install-claude / install-gemini / ...)
 #
-# Idempotently writes a hivequeen startup protocol block into a tool-specific
+# Idempotently writes a nestwork startup protocol block into a tool-specific
 # markdown (e.g. ~/.claude/CLAUDE.md, ~/.gemini/GEMINI.md). Uses HTML-comment
 # markers so the user's own content in the same file is preserved across
 # re-installs and upstream protocol bumps.
 #
 # Behaviour:
-#   - File does not exist          -> create with just the hivequeen block
+#   - File does not exist          -> create with just the nestwork block
 #   - File exists, no markers      -> append block after existing content
 #   - File exists, markers present -> replace content between markers only
 #
 # Usage:
-#   _install-bootstrap.py <output_md> <hivequeen_path> <host> <agent_id>
+#   _install-bootstrap.py <output_md> <nestwork_path> <host> <agent_id>
 # -----------------------------------------------------------------------------
 
 import os
 import re
 import sys
 
-BEGIN = "<!-- hivequeen:begin -->"
-END   = "<!-- hivequeen:end -->"
+BEGIN = "<!-- nestwork:begin -->"
+END   = "<!-- nestwork:end -->"
+LEGACY_BEGIN = "<!-- " + "hive" + "queen:begin -->"
+LEGACY_END = "<!-- " + "hive" + "queen:end -->"
 
 LEGACY_CODEX_BOOTSTRAP_RE = re.compile(
     r"^\s*# Global Startup Protocol\b.*?\.codex[\\/]+repos[\\/]+codex[\\/]+bootstrap\.md.*$",
@@ -30,7 +32,7 @@ LEGACY_CODEX_BOOTSTRAP_RE = re.compile(
 
 BLOCK_TEMPLATE = """\
 {begin}
-# Hivequeen Startup Protocol
+# Nestwork Startup Protocol
 
 Before starting analysis, planning, or implementation, run:
 
@@ -38,7 +40,7 @@ Before starting analysis, planning, or implementation, run:
 git -C {hp} pull --rebase
 ```
 
-Then load context from hivequeen in this order:
+Then load context from nestwork in this order:
 
 1. `{hp}/queen/agent-rules.md`
 2. `{hp}/queen/strategy.md`
@@ -87,24 +89,26 @@ def strip_legacy_codex_bootstrap(content: str) -> str:
         return content
     if BEGIN in content:
         return content[content.index(BEGIN):].lstrip()
+    if LEGACY_BEGIN in content:
+        return content[content.index(LEGACY_BEGIN):].lstrip()
     return ""
 
 
 def main() -> int:
     if len(sys.argv) < 5:
         print(
-            "usage: _install-bootstrap.py <output_md> <hivequeen_path> <host> <agent_id>",
+            "usage: _install-bootstrap.py <output_md> <nestwork_path> <host> <agent_id>",
             file=sys.stderr,
         )
         return 2
 
     out_path       = sys.argv[1]
-    hivequeen_path = sys.argv[2].replace("\\", "/").rstrip("/")
+    nestwork_path = sys.argv[2].replace("\\", "/").rstrip("/")
     host           = sys.argv[3]
     agent_id       = sys.argv[4]
 
     block = BLOCK_TEMPLATE.format(
-        begin=BEGIN, end=END, hp=hivequeen_path, host=host, aid=agent_id
+        begin=BEGIN, end=END, hp=nestwork_path, host=host, aid=agent_id
     )
 
     out_dir = os.path.dirname(out_path)
@@ -120,10 +124,16 @@ def main() -> int:
     marker_pattern = re.compile(
         re.escape(BEGIN) + r".*?" + re.escape(END), re.DOTALL
     )
+    legacy_marker_pattern = re.compile(
+        re.escape(LEGACY_BEGIN) + r".*?" + re.escape(LEGACY_END), re.DOTALL
+    )
 
     if marker_pattern.search(existing):
         # Replace only the marker block; keep user content outside intact.
         new_content = marker_pattern.sub(block.strip(), existing)
+    elif legacy_marker_pattern.search(existing):
+        # Upgrade older installed blocks to the new marker name.
+        new_content = legacy_marker_pattern.sub(block.strip(), existing)
     elif existing.strip():
         # User already has unrelated content -- append the block after it.
         new_content = existing.rstrip() + "\n\n" + block
@@ -135,10 +145,11 @@ def main() -> int:
 
     mode = (
         "updated block" if marker_pattern.search(existing)
+        else "updated legacy block" if legacy_marker_pattern.search(existing)
         else "appended block" if existing.strip()
         else "created"
     )
-    print(f"hivequeen bootstrap ({mode}) in {out_path}")
+    print(f"nestwork bootstrap ({mode}) in {out_path}")
     return 0
 
 

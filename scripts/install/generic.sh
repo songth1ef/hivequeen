@@ -2,10 +2,10 @@
 set -e
 
 # -----------------------------------------------------------------------------
-# hivequeen x generic markdown-config installer
+# nestwork x generic markdown-config installer
 #
 # Works for any AI CLI that loads a single markdown file at startup as its
-# system prompt / instructions / rules. Writes the hivequeen bootstrap block
+# system prompt / instructions / rules. Writes the nestwork bootstrap block
 # into that file using the same marker-block convention as install-claude.
 #
 # Usage:
@@ -24,16 +24,16 @@ set -e
 # The script:
 #   - Generates a deterministic agent-id "<prefix>", rooted under agents/<host>/
 #   - Creates agents/<host>/<agent-id>/memory.md if missing
-#   - Injects (or updates) the hivequeen bootstrap block in the target file
-#     via scripts/install/_bootstrap.py (preserves any non-hivequeen content)
+#   - Injects (or updates) the nestwork bootstrap block in the target file
+#     via scripts/install/_bootstrap.py (preserves any non-nestwork content)
 #
 # Does NOT register hooks -- only Claude Code has a PreToolUse-style hook
-# system that hivequeen can plug into. All other tools rely on the session
+# system that nestwork can plug into. All other tools rely on the session
 # instructions (written into the config file) to commit+push memory manually
 # at session end.
 # -----------------------------------------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PREFIX="${1:-}"
 CONFIG_PATH="${2:-}"
 
@@ -56,12 +56,12 @@ eval CONFIG_PATH="$CONFIG_PATH"
 
 # Resolve (host, agent-id) via shared identity helper. Generic installer uses
 # the deterministic one-per-host layout: agents/<host>/<prefix>/
-IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" "$PREFIX")"
+IDENTITY="$(python3 "$NESTWORK_PATH/scripts/install/_identity.py" "$PREFIX")"
 HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
 AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
+AGENT_DIR="$NESTWORK_PATH/agents/$HOST/$AGENT_ID"
 
-echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> nestwork path : $NESTWORK_PATH"
 echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 echo "-> config target  : $CONFIG_PATH"
@@ -85,11 +85,11 @@ fi
 # 2. Inject bootstrap into the tool's config file
 CONFIG_DIR="$(dirname "$CONFIG_PATH")"
 mkdir -p "$CONFIG_DIR"
-python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$CONFIG_PATH" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
+python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
+  "$CONFIG_PATH" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
-echo "OK hivequeen installed for $PREFIX"
+echo "OK nestwork installed for $PREFIX"
 echo "   agent  : $HOST/$AGENT_ID"
 echo "   memory : $AGENT_DIR/memory.md"
 echo "   config : $CONFIG_PATH"

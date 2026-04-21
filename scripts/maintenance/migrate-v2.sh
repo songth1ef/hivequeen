@@ -2,17 +2,17 @@
 set -e
 
 # -----------------------------------------------------------------------------
-# hivequeen protocol v1 -> v2 migration
+# nestwork protocol v1 -> v2 migration
 #
 # Rewrites the flat agents/<tool>-<host>-<suffix>/ layout into the new
 # agents/<host>/<tool>[-<suffix>]/ layout. Safe to run multiple times:
 # already-migrated directories are left alone.
 #
-# Run from the hivequeen root (or pass its path as $1). The script uses
+# Run from the nestwork root (or pass its path as $1). The script uses
 # `git mv` so history is preserved. It does NOT commit -- review the
 # staged changes, then commit with a message like:
 #
-#     git commit -m "migrate: hivequeen protocol v1 -> v2 layout"
+#     git commit -m "migrate: nestwork protocol v1 -> v2 layout"
 #
 # Safety:
 #   - refuses to run on a dirty working tree (unless --force)
@@ -21,7 +21,7 @@ set -e
 # -----------------------------------------------------------------------------
 
 FORCE=0
-HIVEQUEEN_PATH=""
+NESTWORK_PATH=""
 
 for arg in "$@"; do
   case "$arg" in
@@ -30,18 +30,18 @@ for arg in "$@"; do
       sed -n '3,20p' "$0"
       exit 0
       ;;
-    *) HIVEQUEEN_PATH="$arg" ;;
+    *) NESTWORK_PATH="$arg" ;;
   esac
 done
 
-if [ -z "$HIVEQUEEN_PATH" ]; then
-  HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [ -z "$NESTWORK_PATH" ]; then
+  NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fi
 
-cd "$HIVEQUEEN_PATH"
+cd "$NESTWORK_PATH"
 
 if [ ! -d agents ]; then
-  echo "ERROR: $HIVEQUEEN_PATH/agents not found" >&2
+  echo "ERROR: $NESTWORK_PATH/agents not found" >&2
   exit 1
 fi
 
@@ -104,4 +104,4 @@ echo ""
 echo "migration summary: $moved moved, $skipped skipped"
 echo ""
 echo "Review with: git status"
-echo "Commit with: git commit -m 'migrate: hivequeen protocol v1 -> v2 layout'"
+echo "Commit with: git commit -m 'migrate: nestwork protocol v1 -> v2 layout'"

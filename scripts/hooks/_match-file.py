@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -----------------------------------------------------------------------------
-# hivequeen hook helper: file-path matcher
+# nestwork hook helper: file-path matcher
 #
 # Reads Claude Code hook JSON from stdin (with tool_input.file_path), and
-# compares it to <hivequeen>/agents/<host>/<agent-id>/. Exit 0 on match,
+# compares it to <nestwork>/agents/<host>/<agent-id>/. Exit 0 on match,
 # 1 otherwise.
 #
-# Invoked by hook-hivequeen.sh -- kept in a separate file so bash can forward
+# Invoked by hook-nestwork.sh -- kept in a separate file so bash can forward
 # stdin to python without heredoc collisions.
 # -----------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ def norm(p: str) -> str:
 def main() -> int:
     if len(sys.argv) < 4:
         return 1
-    hivequeen_path = sys.argv[1]
+    nestwork_path = sys.argv[1]
     host           = sys.argv[2]
     agent_id       = sys.argv[3]
 
@@ -40,7 +40,7 @@ def main() -> int:
         return 1
 
     target = norm(file_path)
-    agent_dir = norm(os.path.join(hivequeen_path, 'agents', host, agent_id))
+    agent_dir = norm(os.path.join(nestwork_path, 'agents', host, agent_id))
 
     if target == agent_dir or target.startswith(agent_dir + '/'):
         return 0

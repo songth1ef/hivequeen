@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# hivequeen x claude-mem exporter
+# nestwork x claude-mem exporter
 #
 # Fetches today's observations from claude-mem's HTTP API and writes a digest
-# to agents/<host>/<id>/claude-mem-digest.md so hivequeen can sync it across machines.
+# to agents/<host>/<id>/claude-mem-digest.md so nestwork can sync it across machines.
 #
 # Called automatically during Session End (registered by install-claude.sh).
 # Exits cleanly if claude-mem is not running -- never blocks the main hook.
@@ -11,22 +11,22 @@
 
 set -euo pipefail
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # Args: $1 = host, $2 = agent-id (both required, forwarded from Stop hook)
-HOST_ID="${1:-${HIVEQUEEN_HOST:-}}"
-AGENT_ID="${2:-${HIVEQUEEN_AGENT_ID:-}}"
+HOST_ID="${1:-${NESTWORK_HOST:-}}"
+AGENT_ID="${2:-${NESTWORK_AGENT_ID:-}}"
 
 if [ -z "$HOST_ID" ] || [ -z "$AGENT_ID" ]; then
   # Fallback: resolve from identity helper (e.g. when run manually)
-  eval "$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" claude --with-suffix 2>/dev/null | \
+  eval "$(python3 "$NESTWORK_PATH/scripts/install/_identity.py" claude --with-suffix 2>/dev/null | \
     awk 'NR==1{print "HOST_ID="$0} NR==2{print "AGENT_ID="$0}')"
 fi
 
 [ -z "$HOST_ID" ] && { echo "[!]  claude-mem export: host unresolved, skipping" >&2; exit 0; }
 [ -z "$AGENT_ID" ] && { echo "[!]  claude-mem export: agent-id unresolved, skipping" >&2; exit 0; }
 
-OUTPUT_FILE="$HIVEQUEEN_PATH/agents/$HOST_ID/$AGENT_ID/claude-mem-digest.md"
+OUTPUT_FILE="$NESTWORK_PATH/agents/$HOST_ID/$AGENT_ID/claude-mem-digest.md"
 WORKER_URL="${CLAUDE_MEM_URL:-http://localhost:37777}"
 
 # -- 1. Guard: skip silently if claude-mem worker is not running ---------------

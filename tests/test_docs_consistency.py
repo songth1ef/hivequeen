@@ -13,7 +13,7 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertNotIn("agents/<tool>-<hostname>/", readme)
 
     def test_project_context_exists_in_template(self) -> None:
-        project_context = REPO_ROOT / "projects" / "hivequeen.md"
+        project_context = REPO_ROOT / "projects" / "nestwork.md"
 
         self.assertTrue(project_context.exists())
         self.assertIn("git 原生的 AI agent 上下文协议", project_context.read_text(encoding="utf-8"))
@@ -65,7 +65,7 @@ class DocsConsistencyTests(unittest.TestCase):
     def test_llms_txt_points_to_answer_ready_docs(self) -> None:
         llms = (REPO_ROOT / "llms.txt").read_text(encoding="utf-8")
 
-        self.assertIn("hivequeen", llms)
+        self.assertIn("nestwork", llms)
         self.assertIn("docs/ai-agent-memory.md", llms)
         self.assertIn("docs/claude-code-memory.md", llms)
         self.assertIn("docs/codex-persistent-memory.md", llms)

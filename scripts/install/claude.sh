@@ -2,21 +2,21 @@
 set -e
 
 # ---------------------------------------------
-# hivequeen x Claude Code installer
+# nestwork x Claude Code installer
 # ---------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 SETTINGS="$CLAUDE_DIR/settings.json"
 
 # Resolve (host, agent-id) via shared identity helper. Claude uses a random
 # suffix so multiple installs on one machine stay distinct.
-IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" claude --with-suffix)"
+IDENTITY="$(python3 "$NESTWORK_PATH/scripts/install/_identity.py" claude --with-suffix)"
 HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
 AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
-AGENT_DIR="$HIVEQUEEN_PATH/agents/$HOST/$AGENT_ID"
+AGENT_DIR="$NESTWORK_PATH/agents/$HOST/$AGENT_ID"
 
-echo "-> hivequeen path : $HIVEQUEEN_PATH"
+echo "-> nestwork path : $NESTWORK_PATH"
 echo "-> host           : $HOST"
 echo "-> agent id       : $AGENT_ID"
 
@@ -36,11 +36,11 @@ EOF
   echo "[ok] created $AGENT_DIR/memory.md"
 fi
 
-# 2. Inject hivequeen bootstrap into global CLAUDE.md.
+# 2. Inject nestwork bootstrap into global CLAUDE.md.
 #    Preserves any existing user content via HTML-comment marker block.
 mkdir -p "$CLAUDE_DIR"
-python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$CLAUDE_DIR/CLAUDE.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
+python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
+  "$CLAUDE_DIR/CLAUDE.md" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
 # 3. Register hooks: PreToolUse / PostToolUse / Stop
 #    Atomic per-write sync: pull before every memory Write/Edit,
@@ -51,10 +51,10 @@ if [ ! -f "$SETTINGS" ]; then
   echo '{}' > "$SETTINGS"
 fi
 
-python3 "$HIVEQUEEN_PATH/scripts/install/_hooks.py" \
-  "$SETTINGS" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
+python3 "$NESTWORK_PATH/scripts/install/_hooks.py" \
+  "$SETTINGS" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
-echo "OK hivequeen installed for Claude Code"
+echo "OK nestwork installed for Claude Code"
 echo "   agent : $HOST/$AGENT_ID"
 echo "   memory: $AGENT_DIR/memory.md"

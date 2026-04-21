@@ -29,10 +29,10 @@ class SyncLocalHistoryTests(unittest.TestCase):
         try:
             root.mkdir()
             home = root / "home"
-            hivequeen = root / "hivequeen"
-            (hivequeen / "agents" / "desktop" / "codex").mkdir(parents=True)
-            (hivequeen / "agents" / "desktop").mkdir(parents=True, exist_ok=True)
-            (hivequeen / "agents" / "desktop" / "settings.json").write_text(
+            nestwork = root / "nestwork"
+            (nestwork / "agents" / "desktop" / "codex").mkdir(parents=True)
+            (nestwork / "agents" / "desktop").mkdir(parents=True, exist_ok=True)
+            (nestwork / "agents" / "desktop" / "settings.json").write_text(
                 json.dumps({"sync_local_history": True}),
                 encoding="utf-8",
             )
@@ -48,12 +48,12 @@ class SyncLocalHistoryTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            argv = ["sync-local-history.py", str(hivequeen), "desktop", "codex"]
+            argv = ["sync-local-history.py", str(nestwork), "desktop", "codex"]
             with patch.object(module.Path, "home", return_value=home), patch.object(sys, "argv", argv):
                 self.assertEqual(0, module.main())
 
             synced = (
-                hivequeen / "agents" / "desktop" / "codex" / "local" / "history.jsonl"
+                nestwork / "agents" / "desktop" / "codex" / "local" / "history.jsonl"
             ).read_text(encoding="utf-8")
             self.assertIn("codex history", synced)
             self.assertNotIn("claude history", synced)

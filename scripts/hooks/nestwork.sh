@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# hivequeen unified hook entry
+# nestwork unified hook entry
 #
 # Usage (invoked by Claude Code settings.json hooks):
-#   hook-hivequeen.sh pre  <host> <agent-id>   -- PreToolUse
-#   hook-hivequeen.sh post <host> <agent-id>   -- PostToolUse
-#   hook-hivequeen.sh stop <host> <agent-id>   -- Stop safety-net
+#   hook-nestwork.sh pre  <host> <agent-id>   -- PreToolUse
+#   hook-nestwork.sh post <host> <agent-id>   -- PostToolUse
+#   hook-nestwork.sh stop <host> <agent-id>   -- Stop safety-net
 #
 # Design: atomic per-write sync.
 # - pre:  pull --rebase before memory write; abort write on conflict
@@ -17,8 +17,8 @@ set -u
 PHASE="${1:-}"
 HOST_ID="${2:-}"
 AGENT_ID="${3:-}"
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-MATCHER_SCRIPT="$HIVEQUEEN_PATH/scripts/hooks/_match-file.py"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+MATCHER_SCRIPT="$NESTWORK_PATH/scripts/hooks/_match-file.py"
 
 [ -z "$PHASE" ] && exit 0
 [ -z "$HOST_ID" ] && exit 0
@@ -28,12 +28,12 @@ AGENT_REL_PATH="agents/$HOST_ID/$AGENT_ID"
 
 # -- Check whether the Write/Edit target is under agents/<host>/<id>/ ----------
 match_agent_file() {
-  python3 "$MATCHER_SCRIPT" "$HIVEQUEEN_PATH" "$HOST_ID" "$AGENT_ID"
+  python3 "$MATCHER_SCRIPT" "$NESTWORK_PATH" "$HOST_ID" "$AGENT_ID"
 }
 
 # -- git pull --rebase, abort on conflict --------------------------------------
 pull_rebase() {
-  cd "$HIVEQUEEN_PATH" || return 1
+  cd "$NESTWORK_PATH" || return 1
   if git pull --rebase --autostash -q 2>/dev/null; then
     return 0
   fi
@@ -46,7 +46,7 @@ pull_rebase() {
 # IMPORTANT: scope all commits to agents/<host>/<agent-id>/ via explicit
 # pathspec to avoid vacuuming unrelated staged files.
 commit_push_retry() {
-  cd "$HIVEQUEEN_PATH" || return 1
+  cd "$NESTWORK_PATH" || return 1
   git add "$AGENT_REL_PATH/" >/dev/null 2>&1 || return 1
   git diff --cached --quiet -- "$AGENT_REL_PATH/" && return 0
   git commit -m "memory: update $HOST_ID/$AGENT_ID" -q -- "$AGENT_REL_PATH/" || return 1
@@ -61,12 +61,12 @@ commit_push_retry() {
     sleep "$(awk -v a="$attempt" 'BEGIN{srand(); printf "%.2f", (2^(a-1))*0.5 + rand()*0.3}')"
     git reset --soft HEAD~1 >/dev/null 2>&1
     if ! pull_rebase; then
-      echo "[!] hivequeen[$HOST_ID/$AGENT_ID]: rebase conflict, memory not pushed, manual merge needed" >&2
+      echo "[!] nestwork[$HOST_ID/$AGENT_ID]: rebase conflict, memory not pushed, manual merge needed" >&2
       return 1
     fi
     git commit -m "memory: update $HOST_ID/$AGENT_ID" -q -- "$AGENT_REL_PATH/" || return 1
   done
-  echo "[!] hivequeen[$HOST_ID/$AGENT_ID]: push retried 3 times, all failed; local commit kept, will retry on next hook" >&2
+  echo "[!] nestwork[$HOST_ID/$AGENT_ID]: push retried 3 times, all failed; local commit kept, will retry on next hook" >&2
   return 1
 }
 
@@ -74,7 +74,7 @@ case "$PHASE" in
   pre)
     match_agent_file || exit 0
     pull_rebase || {
-      echo "[!] hivequeen[$HOST_ID/$AGENT_ID]: upstream has conflicting changes, resolve manually before writing memory" >&2
+      echo "[!] nestwork[$HOST_ID/$AGENT_ID]: upstream has conflicting changes, resolve manually before writing memory" >&2
       exit 2   # exit 2 blocks the Write/Edit tool in Claude Code
     }
     ;;

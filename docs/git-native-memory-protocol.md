@@ -2,11 +2,11 @@
 
 ## Short answer
 
-A git-native memory protocol stores AI agent memory as versioned files in a git repository. hivequeen uses git pull, commit, and push to sync memory across agents without a server.
+A git-native memory protocol stores AI agent memory as versioned files in a git repository. nestwork uses git pull, commit, and push to sync memory across agents without a server.
 
 ## Protocol layers
 
-hivequeen separates context into layers:
+nestwork separates context into layers:
 
 | Layer | Path | Purpose |
 |---|---|---|
@@ -24,7 +24,7 @@ queen/agent-rules.md > queen/strategy.md > shared/memory.md > agents/*/*/memory.
 
 ## Why git?
 
-Git gives hivequeen:
+Git gives nestwork:
 
 - offline local files
 - version history

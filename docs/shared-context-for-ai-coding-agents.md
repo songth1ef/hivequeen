@@ -2,7 +2,7 @@
 
 ## Short answer
 
-Shared context for AI coding agents is the set of rules, goals, memory, and project facts that multiple agents load before they work. hivequeen stores shared context in git so Claude Code, Codex CLI, Gemini CLI, and other agents can start from the same source of truth.
+Shared context for AI coding agents is the set of rules, goals, memory, and project facts that multiple agents load before they work. nestwork stores shared context in git so Claude Code, Codex CLI, Gemini CLI, and other agents can start from the same source of truth.
 
 ## Why shared context matters
 
@@ -13,9 +13,9 @@ Without shared context, each AI agent session depends on whatever the user remem
 - decisions are forgotten across sessions
 - multiple machines accumulate different context
 
-hivequeen solves this by making context load order explicit and versioned.
+nestwork solves this by making context load order explicit and versioned.
 
-## hivequeen shared context layers
+## nestwork shared context layers
 
 ```text
 queen/agent-rules.md          behavior rules

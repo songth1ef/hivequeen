@@ -1,4 +1,4 @@
-# hivequeen
+# nestwork
 
 [中文](README.zh.md) | English
 
@@ -6,11 +6,11 @@ Version: v0.2.0 | Protocol: 2.0
 
 Template it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git.
 
-## What is hivequeen?
+## What is nestwork?
 
-hivequeen is an AI agent memory system for coding agents. It gives Claude Code, Codex CLI, Gemini CLI, and other markdown-config agents persistent memory, shared context, project context, and startup rules through a git-native memory protocol.
+nestwork is an AI agent memory system for coding agents. It gives Claude Code, Codex CLI, Gemini CLI, and other markdown-config agents persistent memory, shared context, project context, and startup rules through a git-native memory protocol.
 
-Use hivequeen when you want AI coding agents to remember context across sessions, machines, and tools without running a server or installing a hosted memory service.
+Use nestwork when you want AI coding agents to remember context across sessions, machines, and tools without running a server or installing a hosted memory service.
 
 ## Answer-ready docs
 
@@ -21,14 +21,14 @@ Use hivequeen when you want AI coding agents to remember context across sessions
 - [AGENTS.md best practices](docs/agents-md-best-practices.md)
 - [Shared context for AI coding agents](docs/shared-context-for-ai-coding-agents.md)
 - [FAQ](docs/faq.md)
-- [hivequeen vs claude-mem](docs/comparisons/claude-mem.md)
+- [nestwork vs claude-mem](docs/comparisons/claude-mem.md)
 
 ---
 
 ## How it works
 
 ```
-hivequeen repo (your private queen)
+nestwork repo (your private queen)
 ├── queen/          ← read-only rules & strategy (you write this)
 ├── agents/         ← each agent writes ONLY to its own directory
 ├── shared/         ← compiled memory across all agents (read-only)
@@ -55,7 +55,7 @@ Set it to **Private** — your memory stays yours.
 > **Why not Fork?** Forks are public by default and tied to the upstream repo.
 > A private repo created from this template is fully yours.
 > 
-> When hivequeen ships updates, `git merge upstream/main` would conflict with your
+> When nestwork ships updates, `git merge upstream/main` would conflict with your
 > private `queen/strategy.md`, `agents/`, and `shared/` — files you intentionally
 > diverged. The `update.sh` script syncs only the protocol layer, leaving your
 > private data untouched.
@@ -63,69 +63,69 @@ Set it to **Private** — your memory stays yours.
 ### 2. Clone to each machine
 
 ```bash
-git clone git@github.com:<you>/hivequeen.git ~/hivequeen
+git clone git@github.com:<you>/nestwork.git ~/nestwork
 ```
 
 ### 3. Install for your agent tool
 
 **Claude Code (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install/claude.sh
+bash ~/nestwork/scripts/install/claude.sh
 ```
 
 **Claude Code (Windows)**
 ```powershell
-.\hivequeen\scripts\install\claude.ps1
+.\nestwork\scripts\install\claude.ps1
 ```
 
 **Codex (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install/codex.sh
+bash ~/nestwork/scripts/install/codex.sh
 ```
 
 **Codex (Windows)**
 ```powershell
-.\hivequeen\scripts\install\codex.ps1
+.\nestwork\scripts\install\codex.ps1
 ```
 
 **OpenClaw (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install/openclaw.sh
+bash ~/nestwork/scripts/install/openclaw.sh
 ```
 
 **OpenClaw (Windows)**
 ```powershell
-.\hivequeen\scripts\install\openclaw.ps1
+.\nestwork\scripts\install\openclaw.ps1
 ```
 
 **Hermes Agent (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install/hermes.sh
+bash ~/nestwork/scripts/install/hermes.sh
 ```
 
 **Hermes Agent (Windows)**
 ```powershell
-.\hivequeen\scripts\install\hermes.ps1
+.\nestwork\scripts\install\hermes.ps1
 ```
 
 **Gemini CLI (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install/gemini.sh
+bash ~/nestwork/scripts/install/gemini.sh
 ```
 
 **Gemini CLI (Windows)**
 ```powershell
-.\hivequeen\scripts\install\gemini.ps1
+.\nestwork\scripts\install\gemini.ps1
 ```
 
 **Aider (macOS / Linux)**
 ```bash
-bash ~/hivequeen/scripts/install/aider.sh
+bash ~/nestwork/scripts/install/aider.sh
 ```
 
 **Aider (Windows)**
 ```powershell
-.\hivequeen\scripts\install\aider.ps1
+.\nestwork\scripts\install\aider.ps1
 ```
 
 **Any other markdown-config CLI** (Qwen Code, OpenCode, Trae, Kimi Code, …) — see
@@ -138,13 +138,13 @@ Repeat on every machine. Same queen, different agent IDs, one shared brain.
 Skip the manual steps — paste one of these into any Claude Code session:
 
 - **From scratch**
-  > Read the README at https://github.com/songth1ef/hivequeen and follow
+  > Read the README at https://github.com/songth1ef/nestwork and follow
   > Quickstart: create a private queen repo from the template, clone it
   > on this machine, and install Claude Code.
 
 - **Discover configurable features**
-  > Read the README at https://github.com/songth1ef/hivequeen and list
-  > every configurable feature hivequeen exposes (hooks, optional syncs,
+  > Read the README at https://github.com/songth1ef/nestwork and list
+  > every configurable feature nestwork exposes (hooks, optional syncs,
   > filters, …). Then recommend which ones to enable for my current
   > machine.
 
@@ -170,11 +170,11 @@ using one of two strategies:
 
 ```bash
 # Mechanical: concatenate every agents/*/*/memory.md, commit, push.
-bash ~/hivequeen/scripts/maintenance/compile.sh
+bash ~/nestwork/scripts/maintenance/compile.sh
 
 # LLM-oriented: print a distillation prompt. Feed the output to any
 # agent session, then commit the agent's merged shared/memory.md.
-python3 ~/hivequeen/scripts/maintenance/distill.py
+python3 ~/nestwork/scripts/maintenance/distill.py
 ```
 
 Both variants leave the input agent memories untouched. All agents pick
@@ -185,7 +185,7 @@ the new `shared/memory.md` up on their next `git pull`.
 ## Directory structure
 
 ```
-hivequeen/
+nestwork/
 ├── AGENTS.md                   bootstrap source of truth (Codex, OpenClaw, Gemini, ...)
 ├── CLAUDE.md                   verbatim mirror of AGENTS.md (Claude Code loads this name)
 ├── SOUL.md                     short persona file (Hermes entry point)
@@ -211,7 +211,7 @@ hivequeen/
     │   ├── _bootstrap.py          shared bootstrap injector
     │   └── _hooks.py              shared hook registrar (Claude Code)
     ├── hooks/                     runtime hooks
-    │   ├── hivequeen.sh           pre/post/stop entry
+    │   ├── nestwork.sh           pre/post/stop entry
     │   ├── _match-file.py         stdin-based file matcher
     │   ├── export-claude-mem.sh   optional claude-mem bridge
     │   ├── sync-local-history.sh  optional local-history capture (wrapper)
@@ -244,7 +244,7 @@ agents/macbook/claude/
 ├── memory.md          ← becomes an index
 ├── user_profile.md
 ├── feedback_collab.md
-└── project_hivequeen.md
+└── project_nestwork.md
 ```
 
 `memory.md` after split:
@@ -253,7 +253,7 @@ agents/macbook/claude/
 
 - [User Profile](user_profile.md) — role, stack, preferences
 - [Collaboration](feedback_collab.md) — working style, corrections
-- [Project: hivequeen](project_hivequeen.md) — goals, decisions
+- [Project: nestwork](project_nestwork.md) — goals, decisions
 ```
 
 Agents read the index first, follow links only when the topic is relevant.
@@ -283,7 +283,7 @@ Each agent owns exactly one directory under `agents/`. No two agents should writ
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | Installer exists; not personally used or verified yet |
 | OpenClaw | open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | Installer exists; not personally used or verified yet |
 | Hermes Agent | open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Installer exists; not personally used or verified yet |
-| Aider | open source | `~/.aider-hivequeen.md` (wired via `.aider.conf.yml` `read:`) | `bash scripts/install/aider.sh` | Installer exists; not personally used or verified yet |
+| Aider | open source | `~/.aider-nestwork.md` (wired via `.aider.conf.yml` `read:`) | `bash scripts/install/aider.sh` | Installer exists; not personally used or verified yet |
 
 Only Claude Code and Codex CLI are actively adapted in this queen right now.
 Other installers are reference entry points for later adaptation; users can
@@ -354,9 +354,9 @@ Examples — paths are illustrative, verify before running:
 
 | Tool | Target | Install |
 |---|---|---|
-| Cursor | `.cursor/rules/hivequeen.md` | `ln -s AGENTS.md .cursor/rules/hivequeen.md` |
-| Windsurf | `.windsurf/rules/hivequeen.md` | `ln -s AGENTS.md .windsurf/rules/hivequeen.md` |
-| Cline (VS Code) | `.clinerules/hivequeen.md` | `ln -s AGENTS.md .clinerules/hivequeen.md` |
+| Cursor | `.cursor/rules/nestwork.md` | `ln -s AGENTS.md .cursor/rules/nestwork.md` |
+| Windsurf | `.windsurf/rules/nestwork.md` | `ln -s AGENTS.md .windsurf/rules/nestwork.md` |
+| Cline (VS Code) | `.clinerules/nestwork.md` | `ln -s AGENTS.md .clinerules/nestwork.md` |
 | GitHub Copilot (repo) | `.github/copilot-instructions.md` | `ln -s AGENTS.md .github/copilot-instructions.md` |
 
 ### Not supported (and why)
@@ -365,7 +365,7 @@ Examples — paths are illustrative, verify before running:
 |---|---|
 | GitHub Copilot CLI (`gh copilot`) | Q&A style, no persistent instruction-file mechanism |
 | Antigravity | IDE-first; CLI entrypoint is project-scoped and undocumented for external bootstrap |
-| CloudBase AI CLI | Gateway that invokes downstream CLIs — install hivequeen on the downstream tools instead |
+| CloudBase AI CLI | Gateway that invokes downstream CLIs — install nestwork on the downstream tools instead |
 | ChatDev | Simulated "software company" workflow, not a persistent single-agent loop |
 
 ---
@@ -384,8 +384,8 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 This:
 - Creates `agents/<host>/<prefix>/memory.md` for that tool on this machine
-- Writes the hivequeen bootstrap block into `<config-path>` inside
-  `<!-- hivequeen:begin -->` / `<!-- hivequeen:end -->` markers, preserving
+- Writes the nestwork bootstrap block into `<config-path>` inside
+  `<!-- nestwork:begin -->` / `<!-- nestwork:end -->` markers, preserving
   any existing user content
 - Does NOT register hooks — the bootstrap block instructs the agent to
   `git add / commit / push` its memory dir at session end

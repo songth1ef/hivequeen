@@ -13,17 +13,17 @@
   to regenerate CLAUDE.md. Drift between the two files is a bug.
 -->
 
-# HIVEQUEEN BOOTSTRAP
+# NESTWORK BOOTSTRAP
 
 <!-- protocol-version: 2.0 -->
 
-Every agent that loads this file is a Formic worker connected to the same queen.
+Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly on every session.
 
 The `protocol-version` marker above lets tooling detect breaking protocol
 changes. Semantics: `MAJOR.MINOR`. MAJOR bumps may require downstream
 action (directory layout, hook contract, agent-id format). MINOR bumps are
-additive-compatible. Private queens may pin a version they trust and gate
+additive-compatible. Private Nestwork repos may pin a version they trust and gate
 auto-sync on it.
 
 ---
@@ -33,7 +33,7 @@ auto-sync on it.
 Run before doing anything else:
 
 ```bash
-git -C $HIVEQUEEN_PATH pull --rebase
+git -C $NESTWORK_PATH pull --rebase
 ```
 
 If pull fails, note the reason and continue.
@@ -55,18 +55,18 @@ distinct instances (e.g. `claude-a7k2`), or just `<tool>` for tools that
 treat one-per-host as the norm (e.g. `codex`, `gemini`). The host segment
 is **in the path**, not in the id.
 
-**host format**: lowercased short hostname. Installer persists both host
-and agent-id in `~/.hivequeen_id` (two lines: first = host, second =
-agent-id) so reinstalls keep the same identity. Override via
-`HIVEQUEEN_HOST` and/or `HIVEQUEEN_AGENT_ID` env vars.
+**host format**: lowercased short hostname. Installer persists host in
+`~/.nestwork_host` and agent-id in `~/.nestwork_id` so reinstalls keep
+the same identity. Override via
+`NESTWORK_HOST` and/or `NESTWORK_AGENT_ID` env vars.
 
 ### After loading — orient first, then propose or ask
 
 Before your first reply, orient yourself:
 
-1. `git -C $HIVEQUEEN_PATH log --oneline -10 -- agents/` — recent activity
+1. `git -C $NESTWORK_PATH log --oneline -10 -- agents/` — recent activity
    across every instance
-2. `git -C $HIVEQUEEN_PATH log --oneline -5` — recent protocol / shared
+2. `git -C $NESTWORK_PATH log --oneline -5` — recent protocol / shared
    changes
 3. Cross-reference against `queen/strategy.md` **Current Priorities** and
    the latest entries in `shared/memory.md` and your own
@@ -111,10 +111,10 @@ is a safety net for writes that slipped past. **Do nothing extra.**
 **If hooks are NOT available** for your tool, run manually at session end:
 
 ```bash
-git -C $HIVEQUEEN_PATH add agents/<host>/<agent-id>/
-git -C $HIVEQUEEN_PATH diff --cached --quiet -- agents/<host>/<agent-id>/ || \
-  git -C $HIVEQUEEN_PATH commit -m "memory: update <host>/<agent-id>" -- agents/<host>/<agent-id>/
-git -C $HIVEQUEEN_PATH push
+git -C $NESTWORK_PATH add agents/<host>/<agent-id>/
+git -C $NESTWORK_PATH diff --cached --quiet -- agents/<host>/<agent-id>/ || \
+  git -C $NESTWORK_PATH commit -m "memory: update <host>/<agent-id>" -- agents/<host>/<agent-id>/
+git -C $NESTWORK_PATH push
 ```
 
 Only commit when there are meaningful context changes worth preserving.
@@ -124,7 +124,7 @@ Temporary task details, one-off debugging notes — do not commit.
 
 ## 4. claude-mem Integration (optional)
 
-If [claude-mem](https://github.com/thedotmack/claude-mem) is installed and its worker is running on `localhost:37777`, hivequeen will automatically export a session digest at the end of each session:
+If [claude-mem](https://github.com/thedotmack/claude-mem) is installed and its worker is running on `localhost:37777`, nestwork will automatically export a session digest at the end of each session:
 
 ```
 agents/<host>/<agent-id>/claude-mem-digest.md   ← today's observations from claude-mem
@@ -171,7 +171,7 @@ Each file has a maximum line limit. When exceeded, split into topic files and re
 
 - [User Profile](user_profile.md) — role, stack, preferences
 - [Collaboration](feedback_collab.md) — working style, corrections
-- [Project: hivequeen](project_hivequeen.md) — goals, decisions
+- [Project: nestwork](project_nestwork.md) — goals, decisions
 ```
 
 Each linked file is a standalone topic file. The index is the only file agents

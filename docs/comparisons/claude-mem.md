@@ -1,12 +1,12 @@
-# hivequeen vs claude-mem
+# nestwork vs claude-mem
 
 ## Short answer
 
-hivequeen is a git-native memory protocol for multiple AI coding agents. claude-mem is a Claude-focused memory tool. Use hivequeen when you want shared context across Claude Code, Codex CLI, Gemini CLI, and other agents without running a memory server.
+nestwork is a git-native memory protocol for multiple AI coding agents. claude-mem is a Claude-focused memory tool. Use nestwork when you want shared context across Claude Code, Codex CLI, Gemini CLI, and other agents without running a memory server.
 
 ## Comparison
 
-| Question | hivequeen | claude-mem |
+| Question | nestwork | claude-mem |
 |---|---|---|
 | Primary model | Git repository protocol | Claude-oriented memory integration |
 | Storage | Markdown files in git | Tool-specific memory store |
@@ -15,9 +15,9 @@ hivequeen is a git-native memory protocol for multiple AI coding agents. claude-
 | Server required | No | Depends on deployment mode |
 | Human-readable memory | Yes | Depends on memory format |
 
-## When hivequeen is a better fit
+## When nestwork is a better fit
 
-Use hivequeen if:
+Use nestwork if:
 
 - You want one memory protocol for multiple AI coding agents.
 - You want memory changes in git history.

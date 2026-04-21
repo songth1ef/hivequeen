@@ -10,9 +10,9 @@ set -e
 # header that flags CLAUDE.md as a generated mirror.
 # -----------------------------------------------------------------------------
 
-HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SRC="$HIVEQUEEN_PATH/AGENTS.md"
-DST="$HIVEQUEEN_PATH/CLAUDE.md"
+NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SRC="$NESTWORK_PATH/AGENTS.md"
+DST="$NESTWORK_PATH/CLAUDE.md"
 
 if [ ! -f "$SRC" ]; then
   echo "ERROR: $SRC not found" >&2
@@ -43,7 +43,7 @@ echo "regenerated $DST from $SRC"
 
 # Warn if git sees a diff so callers know to commit.
 if command -v git >/dev/null 2>&1; then
-  cd "$HIVEQUEEN_PATH"
+  cd "$NESTWORK_PATH"
   if ! git diff --quiet -- CLAUDE.md; then
     echo "note: CLAUDE.md has uncommitted changes -- remember to commit"
   fi
