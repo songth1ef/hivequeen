@@ -28,6 +28,8 @@ def is_hivequeen_hook(cmd: str, host: str, agent_id: str) -> bool:
         return True
     if "export-claude-mem.sh" in cmd:
         return True
+    if "sync-local-history.sh" in cmd:
+        return True
     if f"memory: update {agent_id}" in cmd or f"memory: update {host}/{agent_id}" in cmd:
         return True
     if agent_id in cmd and "git push" in cmd:
@@ -65,10 +67,15 @@ def main() -> int:
 
     hook_script = f"{hivequeen_path}/scripts/hooks/hivequeen.sh"
     export_mem  = f"{hivequeen_path}/scripts/hooks/export-claude-mem.sh"
+    sync_local  = f"{hivequeen_path}/scripts/hooks/sync-local-history.sh"
 
     pre_cmd  = f"bash {hook_script} pre {host} {agent_id}"
     post_cmd = f"bash {hook_script} post {host} {agent_id}"
-    stop_cmd = f"bash {export_mem} {host} {agent_id}; bash {hook_script} stop {host} {agent_id}"
+    stop_cmd = (
+        f"bash {export_mem} {host} {agent_id}; "
+        f"bash {sync_local} {host} {agent_id}; "
+        f"bash {hook_script} stop {host} {agent_id}"
+    )
 
     os.makedirs(os.path.dirname(settings_path) or ".", exist_ok=True)
     if not os.path.exists(settings_path):
