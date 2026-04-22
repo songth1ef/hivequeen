@@ -388,11 +388,25 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 两条路径，都不碰你的私有数据（`agents/`、`queen/`、`shared/`、`projects/`）。
 
-### 自动（推荐）
+### 手动（默认）
 
-你私有仓库里的 `.github/workflows/sync-upstream.yml` 每天 03:00 UTC
-运行一次（也可手动 **Run workflow**），对比协议层与 upstream 模板，
-发现差异就开 PR 到你的 `main`。你 review diff 后合并。
+需要拉取最新协议层更新时，直接打开
+**Actions -> Sync Nestwork upstream -> Run workflow**。
+
+这应该是默认推荐路径，因为大多数仓库没必要每天追上游，
+手动 review 也能让协议层变更保持明确、可控。
+
+### 自动（可选）
+
+你私有仓库里的 `.github/workflows/sync-upstream.yml` 可以在每周一
+03:00 UTC 自动运行，对比协议层与 upstream 模板，发现差异就开 PR
+到你的 `main`。你 review diff 后合并。
+
+自动同步默认**关闭**。要启用它：
+
+1. 打开 **Settings -> Secrets and variables -> Actions -> Variables**
+2. 新建一个仓库变量，名字填 `NESTWORK_AUTO_SYNC`
+3. 值填 `true`
 
 现在 PR 的 create/update/reopen 走的是 GitHub REST API，不再依赖
 `gh pr ...` 的 GraphQL 路径，因为有些仓库即使开了 pull request 写权限，
@@ -402,7 +416,7 @@ bash scripts/install/generic.sh <prefix> <config-path>
 GitHub 禁止 `GITHUB_TOKEN` push 修改 workflow 文件的 commit，所以 CI
 路径**不覆盖** `.github/workflows/`，workflow 变更要走下面的手动路径。
 
-### 手动
+### 手动刷新协议层
 
 ```bash
 bash ~/my-queen/scripts/maintenance/update.sh

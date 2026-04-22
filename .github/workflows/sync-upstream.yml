@@ -6,6 +6,9 @@ name: Sync Nestwork upstream
 # songth1ef/nestwork ships changes to scripts/, AGENTS.md, CLAUDE.md, SOUL.md
 # or READMEs. Never touches queen/, agents/, shared/, or projects/.
 #
+# Manual "Run workflow" is the default path. Scheduled sync is opt-in via the
+# repo variable `NESTWORK_AUTO_SYNC=true`.
+#
 # The bot keeps a single long-lived branch `sync/upstream`. Same-day reruns
 # update the branch in place; the PR stays open until merged.
 #
@@ -18,7 +21,7 @@ name: Sync Nestwork upstream
 
 on:
   schedule:
-    - cron: '0 3 * * *'      # 03:00 UTC daily
+    - cron: '0 3 * * 1'      # 03:00 UTC every Monday
   workflow_dispatch: {}
 
 permissions:
@@ -27,6 +30,7 @@ permissions:
 
 jobs:
   sync:
+    if: github.event_name != 'schedule' || vars.NESTWORK_AUTO_SYNC == 'true'
     runs-on: ubuntu-latest
     env:
       # Preemptively opt JavaScript actions (actions/checkout etc.) into the

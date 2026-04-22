@@ -397,12 +397,27 @@ This:
 Two paths — both keep your private data (`agents/`, `queen/`,
 `shared/`, `projects/`) untouched.
 
-### Automatic (recommended)
+### Manual (default)
 
-The `.github/workflows/sync-upstream.yml` in your queen runs daily at
-03:00 UTC (and on manual **Run workflow**), compares the protocol
-layer against the upstream template, and opens a PR to your `main`
-when upstream drifts. You review the diff and merge.
+Open **Actions -> Sync Nestwork upstream -> Run workflow** whenever you
+want to pull the latest protocol-layer updates into your private repo.
+
+This is the default recommendation because most repos do not need
+template updates every day, and manual review keeps protocol changes
+intentional.
+
+### Automatic (optional)
+
+The `.github/workflows/sync-upstream.yml` in your queen can run every
+Monday at 03:00 UTC, compare the protocol layer against the upstream
+template, and open a PR to your `main` when upstream drifts. You review
+the diff and merge.
+
+Scheduled sync is **off by default**. To enable it:
+
+1. Open **Settings -> Secrets and variables -> Actions -> Variables**
+2. Add a repository variable named `NESTWORK_AUTO_SYNC`
+3. Set its value to `true`
 
 PR create/update/reopen now uses the GitHub REST API instead of
 `gh pr ...` because some repositories reject GraphQL PR mutations from
@@ -414,7 +429,7 @@ GitHub blocks `GITHUB_TOKEN` from pushing workflow-file changes, so
 `.github/workflows/` is **not** touched by the CI path — use the
 manual path below for workflow updates.
 
-### Manual
+### Manual protocol refresh
 
 ```bash
 bash ~/my-queen/scripts/maintenance/update.sh
