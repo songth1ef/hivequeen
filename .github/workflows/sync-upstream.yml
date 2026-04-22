@@ -68,7 +68,10 @@ jobs:
       - name: Close stale sync PR if in sync
         if: steps.drift.outputs.has_changes == 'false'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Prefer a repo secret PAT when provided. Some repositories still
+          # reject create/reopen PR mutations from the default GITHUB_TOKEN
+          # even with pull-request permissions enabled.
+          GH_TOKEN: ${{ secrets.NESTWORK_SYNC_TOKEN != '' && secrets.NESTWORK_SYNC_TOKEN || github.token }}
         run: |
           OPEN_PRS=$(gh pr list --head "$SYNC_BRANCH" --state open --json number -q '.[].number')
           for n in $OPEN_PRS; do
@@ -91,7 +94,7 @@ jobs:
       - name: Open or update PR
         if: steps.drift.outputs.has_changes == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.NESTWORK_SYNC_TOKEN != '' && secrets.NESTWORK_SYNC_TOKEN || github.token }}
         run: |
           # Build the PR body via a heredoc so we don't have to fight YAML's
           # literal-block-scalar indentation rules with a multi-line `--body`.
