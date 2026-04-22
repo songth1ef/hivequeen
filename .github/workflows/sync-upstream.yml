@@ -93,11 +93,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          EXISTING=$(gh pr list --head "$SYNC_BRANCH" --state open --json number -q '.[0].number // empty')
-          if [ -n "$EXISTING" ]; then
-            echo "PR #$EXISTING already open -- branch updated in place."
-            exit 0
-          fi
           # Build the PR body via a heredoc so we don't have to fight YAML's
           # literal-block-scalar indentation rules with a multi-line `--body`.
           # YAML strips the block-scalar indent before handing content to bash,
@@ -115,6 +110,25 @@ jobs:
 
           Review the diff and merge when it looks good. If upstream ships something you do not want, close this PR; the bot will reopen only when upstream changes again.
           BODY
+          EXISTING_OPEN=$(gh pr list --head "$SYNC_BRANCH" --base main --state open --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING_OPEN" ]; then
+            echo "PR #$EXISTING_OPEN already open -- branch updated in place."
+            gh pr edit "$EXISTING_OPEN" \
+              --title "chore: sync Nestwork upstream" \
+              --body-file /tmp/pr_body.md
+            exit 0
+          fi
+
+          EXISTING_CLOSED=$(gh pr list --head "$SYNC_BRANCH" --base main --state closed --json number,mergedAt --jq '[.[] | select(.mergedAt == null)][0].number // empty')
+          if [ -n "$EXISTING_CLOSED" ]; then
+            echo "Reopening closed PR #$EXISTING_CLOSED for updated sync branch."
+            gh pr reopen "$EXISTING_CLOSED"
+            gh pr edit "$EXISTING_CLOSED" \
+              --title "chore: sync Nestwork upstream" \
+              --body-file /tmp/pr_body.md
+            exit 0
+          fi
+
           gh pr create \
             --base main \
             --head "$SYNC_BRANCH" \
