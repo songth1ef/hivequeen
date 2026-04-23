@@ -176,11 +176,12 @@ bash ~/nestwork/scripts/maintenance/compile.sh
 python3 ~/nestwork/scripts/maintenance/distill.py
 
 # Codex 手动一键蒸馏：汇总所有 agent memory，写回 shared/memory.md，
-# 然后 commit、push
-python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile chatgpt
+# 然后 commit、push。把 <your-profile> 换成这台机器实际可用的
+# Codex profile；如果默认配置已经正确，也可以省略 --profile。
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile>
 
 # 只预览候选 shared/memory.md，不落盘
-python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile chatgpt --dry-run
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile> --dry-run
 ```
 
 这些方式都不会修改原始的 agent memory。`--run-codex` 只更新

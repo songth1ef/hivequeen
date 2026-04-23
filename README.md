@@ -177,11 +177,13 @@ bash ~/nestwork/scripts/maintenance/compile.sh
 python3 ~/nestwork/scripts/maintenance/distill.py
 
 # Manual end-to-end with Codex: distill all agent memories, write
-# shared/memory.md, commit, push.
-python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile chatgpt
+# shared/memory.md, commit, push. Replace <your-profile> with the
+# Codex profile that works on your machine, or omit --profile if your
+# default Codex config is already correct.
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile>
 
 # Preview the candidate shared/memory.md without writing it.
-python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile chatgpt --dry-run
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile> --dry-run
 ```
 
 All variants leave the input agent memories untouched. `--run-codex`
