@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 *.pyo
 .tmp_sync_local_history_test/
+.test-tmp/

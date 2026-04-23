@@ -87,6 +87,45 @@ old nestwork block
         finally:
             target.unlink(missing_ok=True)
 
+    def test_replaces_legacy_github_agents_global_startup_protocol(self) -> None:
+        legacy = """# Global Startup Protocol
+
+Before starting analysis, planning, or implementation in a new coding session, load:
+
+- `/root/github/agents/bootstrap.md`
+
+Execution requirements:
+
+- Treat `bootstrap.md` as the entry protocol for the user's long-term context repository.
+"""
+
+        target = TMP_ROOT / "bootstrap-test-github-agents-AGENTS.md"
+        try:
+            TMP_ROOT.mkdir(exist_ok=True)
+            target.write_text(legacy, encoding="utf-8")
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(BOOTSTRAP),
+                    str(target),
+                    "/root/github/mynestwork",
+                    "vm-0-6-ubuntu",
+                    "codex",
+                ],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            updated = target.read_text(encoding="utf-8")
+            self.assertNotIn("/root/github/agents/bootstrap.md", updated)
+            self.assertNotIn("Global Startup Protocol", updated)
+            self.assertIn("Nestwork Startup Protocol", updated)
+            self.assertIn("/root/github/mynestwork/AGENTS.md", updated)
+        finally:
+            target.unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
     unittest.main()

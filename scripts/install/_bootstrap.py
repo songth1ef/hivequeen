@@ -26,7 +26,7 @@ LEGACY_BEGIN = "<!-- " + "hive" + "queen:begin -->"
 LEGACY_END = "<!-- " + "hive" + "queen:end -->"
 
 LEGACY_CODEX_BOOTSTRAP_RE = re.compile(
-    r"^\s*# Global Startup Protocol\b.*?\.codex[\\/]+repos[\\/]+codex[\\/]+bootstrap\.md.*$",
+    r"^\s*# Global Startup Protocol\b.*?(?:\.codex[\\/]+repos[\\/]+codex[\\/]+bootstrap\.md|/root/github/agents/bootstrap\.md).*$",
     re.DOTALL,
 )
 
