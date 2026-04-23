@@ -40,6 +40,7 @@ class DistillTests(unittest.TestCase):
     def create_fake_codex(self, bin_dir: Path, response: str) -> None:
         bin_dir.mkdir(parents=True, exist_ok=True)
         fake_codex = bin_dir / "codex"
+        args_log = bin_dir / "codex-args.txt"
         fake_codex.write_text(
             "\n".join(
                 [
@@ -48,6 +49,7 @@ class DistillTests(unittest.TestCase):
                     "import sys",
                     "",
                     "args = sys.argv[1:]",
+                    f"pathlib.Path({str(args_log)!r}).write_text('\\n'.join(args), encoding='utf-8')",
                     "output = pathlib.Path(args[args.index('--output-last-message') + 1])",
                     f"output.write_text({response!r}, encoding='utf-8')",
                     "sys.stdin.read()",
@@ -120,6 +122,7 @@ class DistillTests(unittest.TestCase):
 
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertIn("Updated", completed.stdout)
+            self.assertIn("--ignore-rules", (bin_dir / "codex-args.txt").read_text(encoding="utf-8"))
             self.assertEqual(
                 (root / "shared" / "memory.md").read_text(encoding="utf-8"),
                 "# SHARED MEMORY\n\n- merged and written\n",

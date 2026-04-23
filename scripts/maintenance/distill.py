@@ -159,6 +159,7 @@ def run_codex(prompt: str, profile: str | None, model: str | None) -> str:
             "--sandbox",
             "read-only",
             "--ephemeral",
+            "--ignore-rules",
             "--output-last-message",
             str(output_path),
             "-",
