@@ -41,14 +41,56 @@ pull_rebase() {
   return 1
 }
 
+# -- Read integer setting from agents/<host>/settings.json with default -------
+read_setting_int() {
+  local key="$1" default="$2"
+  local settings="$NESTWORK_PATH/agents/$HOST_ID/settings.json"
+  [ -f "$settings" ] || { echo "$default"; return; }
+  python3 - "$settings" "$key" "$default" <<'PY' 2>/dev/null || echo "$default"
+import json, sys
+path, key, default = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    with open(path, 'r', encoding='utf-8') as f:
+        v = json.load(f).get(key, default)
+    print(int(v))
+except Exception:
+    print(default)
+PY
+}
+
 # -- commit + push with retry; warn on persistent conflict ---------------------
 #
 # IMPORTANT: scope all commits to agents/<host>/<agent-id>/ via explicit
 # pathspec to avoid vacuuming unrelated staged files.
+#
+# Throttle: when the only staged changes are under agents/<host>/<id>/local/
+# (high-frequency runtime artefacts like history.jsonl / plans/), gate the
+# commit by `local_commit_min_interval_sec` (default 3600s) since the last
+# commit touching local/. Distilled memory changes always commit immediately
+# and pull local/ along.
 commit_push_retry() {
   cd "$NESTWORK_PATH" || return 1
   git add "$AGENT_REL_PATH/" >/dev/null 2>&1 || return 1
   git diff --cached --quiet -- "$AGENT_REL_PATH/" && return 0
+
+  local local_path="$AGENT_REL_PATH/local"
+  local non_local
+  non_local=$(git diff --cached --name-only -- "$AGENT_REL_PATH/" ":(exclude)$local_path/*" | head -1)
+  if [ -z "$non_local" ]; then
+    local interval last_ts now_ts elapsed
+    interval=$(read_setting_int "local_commit_min_interval_sec" 3600)
+    last_ts=$(git log -1 --format=%ct -- "$local_path/" 2>/dev/null)
+    now_ts=$(date +%s)
+    if [ -n "$last_ts" ]; then
+      elapsed=$((now_ts - last_ts))
+      if [ "$elapsed" -lt "$interval" ]; then
+        git reset -q HEAD -- "$local_path/" 2>/dev/null
+        echo "[skip] nestwork[$HOST_ID/$AGENT_ID]: local/ throttled, last commit ${elapsed}s ago (< ${interval}s)" >&2
+        return 0
+      fi
+    fi
+  fi
+
   git commit -m "memory: update $HOST_ID/$AGENT_ID" -q -- "$AGENT_REL_PATH/" || return 1
   local attempt
   for attempt in 1 2 3; do
