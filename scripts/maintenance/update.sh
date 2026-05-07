@@ -31,6 +31,9 @@ PROTOCOL_FILES=(
   SOUL.md
   README.md
   README.zh.md
+  docs/
+  schemas/
+  workflow/
 )
 
 cd "$NESTWORK_PATH"
