@@ -33,7 +33,8 @@ PROTOCOL_FILES=(
   README.zh.md
   docs/
   schemas/
-  workflow/
+  workflow/README.md
+  workflow/_template.md
 )
 
 cd "$NESTWORK_PATH"
