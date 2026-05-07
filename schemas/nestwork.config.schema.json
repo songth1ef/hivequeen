@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/songth1ef/nestwork/schemas/nestwork.config.schema.json",
+  "title": "nestwork.config.json",
+  "description": "Directory-level metadata declaring whether and how content from a working directory may be ingested into a Nestwork repository. Lives in the source working directory, not inside Nestwork. See AGENTS.md Section 9 and docs/workflow-protocol.md.",
+  "type": "object",
+  "required": ["version", "ingest", "desensitize"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional JSON Schema reference for editor support."
+    },
+    "version": {
+      "type": "string",
+      "description": "Schema version. Currently '1.0'.",
+      "enum": ["1.0"]
+    },
+    "ingest": {
+      "type": "object",
+      "description": "Declares whether and where content from this directory may be ingested into Nestwork.",
+      "required": ["target"],
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "description": "Which Nestwork category receives ingested content. null = not ingestable.",
+          "oneOf": [
+            { "type": "null" },
+            { "type": "string", "enum": ["projects", "workflow"] }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "Destination filename or subfolder under the target category. Required when target is non-null.",
+          "pattern": "^[a-zA-Z0-9._-]+$"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "target": { "type": "string" } }, "required": ["target"] },
+          "then": { "required": ["name"] }
+        }
+      ]
+    },
+    "desensitize": {
+      "type": "object",
+      "description": "How content from this directory must be desensitized before ingestion.",
+      "required": ["level"],
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "string",
+          "description": "Desensitization aggressiveness. 'none' = no transformation (only valid for verifiably non-confidential content). 'weak' = pattern-based redaction using custom_rules. 'strong' = AI-driven semantic desensitization following docs/desensitization-prompt.md plus all custom_rules.",
+          "enum": ["none", "weak", "strong"]
+        },
+        "custom_rules": {
+          "type": "array",
+          "description": "User-defined sensitive terms or patterns specific to this directory (employer names, internal codenames, client names, etc.). Layered on top of the global methodology. Never committed to upstream nestwork — these stay in the user's source directory only.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "placeholder_overrides": {
+          "type": "object",
+          "description": "Optional mapping from sensitive term to preferred placeholder. Overrides the default placeholder vocabulary in docs/desensitization-prompt.md.",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "$schema": "https://github.com/songth1ef/nestwork/schemas/nestwork.config.schema.json",
+      "version": "1.0",
+      "ingest": {
+        "target": "projects",
+        "name": "example-project"
+      },
+      "desensitize": {
+        "level": "strong",
+        "custom_rules": [
+          "<employer-name>",
+          "<internal-codename>",
+          "<client-name>"
+        ]
+      }
+    },
+    {
+      "version": "1.0",
+      "ingest": {
+        "target": null
+      },
+      "desensitize": {
+        "level": "none"
+      }
+    }
+  ]
+}

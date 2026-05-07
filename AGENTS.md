@@ -1,6 +1,6 @@
 # NESTWORK BOOTSTRAP
 
-<!-- protocol-version: 2.1 -->
+<!-- protocol-version: 2.2 -->
 
 Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly on every session.
@@ -30,6 +30,7 @@ Then load context in this order:
 3. `shared/memory.md` — shared memory across all agents
 4. `agents/<host>/<agent-id>/memory.md` — this instance's private memory (if exists)
 5. `projects/<relevant>.md` — current task context (if relevant)
+6. `workflow/<relevant>.md` — portable user-level workflow knowledge (if relevant; see Section 8)
 
 **Directory layout** (protocol v2.0): agents are grouped by host.
 `agents/<host>/<agent-id>/` — one folder per machine, one subfolder per tool on
@@ -139,7 +140,38 @@ If `git pull` finds conflicts:
 
 ## 6. File Size Limits & Split Protocol
 
-Each file has a maximum line limit. When exceeded, split into topic files and replace the original with an index.
+### Universal rule
+
+**Any markdown file in any Nestwork repository** — including but not limited to memory, plans, projects, workflow, drafts, ad-hoc notes — must be split when it grows too large. The pattern is always the same:
+
+```
+oversized.md  →  oversized/index.md (or just leave oversized.md as the index)
+                 oversized/<topic-a>.md
+                 oversized/<topic-b>.md
+                 ...
+```
+
+The original filename becomes a folder. Inside the folder, content is split by topic. The top-level file (or `index.md` inside the folder) becomes a pure index — links only, no content.
+
+Example:
+
+```
+plan-all.md  (1200 lines)
+  ↓ split
+plan-all.md  (now an index pointing into plan/)
+plan/plan-a.md
+plan/plan-b.md
+plan/plan-c.md
+```
+
+### Default thresholds
+
+When a specific file does not appear in the table below, use these defaults:
+
+- **Soft limit**: 500 lines — start considering a split
+- **Hard limit**: 1000 lines — must split before next write
+
+### Specific limits
 
 | File | Max lines | Split target |
 |---|---|---|
@@ -148,6 +180,7 @@ Each file has a maximum line limit. When exceeded, split into topic files and re
 | `agents/<host>/<agent-id>/memory.md` | 200 | `agents/<host>/<agent-id>/<topic>.md` |
 | `shared/memory.md` | 500 | `shared/<topic>.md` |
 | `projects/<name>.md` | 150 | `projects/<name>/<topic>.md` |
+| `workflow/<topic>.md` | 200 | `workflow/<topic>/<subtopic>.md` |
 
 **How to split** — replace the oversized file with an index:
 
@@ -164,8 +197,10 @@ Each file has a maximum line limit. When exceeded, split into topic files and re
 Each linked file is a standalone topic file. The index is the only file agents
 need to read first — they follow links only when the topic is relevant.
 
-**Agent rule**: before writing new memory, check if the target file is near its
-limit. If yes, split first, then write to the appropriate topic file.
+**Agent rule**: before writing to or extending any markdown file, check its
+current line count against the limit (specific or default). If approaching the
+hard limit, split first, then write to the appropriate topic file. This applies
+to all markdown files, not only those listed in the table.
 
 ---
 
@@ -205,10 +240,105 @@ Only agents explicitly triggered for distillation may write to `shared/`.
 
 ---
 
+## 8. Workflow Protocol
+
+`workflow/` is the lowest-priority context layer. It captures **portable user-level knowledge** that survives across employers, projects, and machines: coding disciplines, tooling preferences, methodologies, migration guides, skill assets.
+
+### What belongs in `workflow/`
+
+| Belongs | Does not belong |
+|---|---|
+| Coding disciplines, estimation rules | Project-specific business rules → `projects/` |
+| Cross-project tooling stack & preferences | Cross-agent stable facts about user identity → `shared/` |
+| Skill assets, prompt templates, perspectives | Single-agent observations → `agents/` |
+| Migration / cross-machine setup guides | Temporary task notes |
+| Methodologies that outlive any single repo | Anything employer-confidential |
+
+### Two ingestion paths
+
+1. **Distillation from agent memory**: when an agent observes a stable user-level pattern across multiple sessions, it may distill into `workflow/<topic>.md`. Same rules as Section 7 distillation, target is `workflow/` instead of `shared/`.
+
+2. **Ingestion from external source dirs**: when content from a working directory outside Nestwork (e.g. an employer project repo) is worth absorbing, the source dir must declare a `nestwork.config.json` (see Section 9). The agent reads that config, applies its desensitization rules, and writes the cleaned result into `workflow/<topic>.md` or `projects/<name>.md`.
+
+### Direction is one-way
+
+- External source dir → mynestwork (private instance) ✓
+- mynestwork → upstream nestwork ✗ (upstream is human-maintained only; never auto-flow)
+
+Whether any artifact is later promoted to public sharing (blog, upstream template, etc.) is always a **separate human decision**, not protocol-driven.
+
+### File size
+
+200-line limit per topic file (see Section 6). Split by subtopic when exceeded.
+
+---
+
+## 9. `nestwork.config.json` Contract
+
+`nestwork.config.json` is a **directory-level metadata file** declaring whether and how content from a working directory may be ingested into a Nestwork repository.
+
+### Where it lives
+
+In the **source working directory**, NOT inside Nestwork. Example:
+
+```
+F:/code/project/<some-project>/nestwork.config.json
+```
+
+When an agent operating in that directory detects content worth ingesting into Nestwork's `projects/` or `workflow/` category, it reads this config to determine ingestion behavior.
+
+### When config is missing
+
+- Agent **must** remind the user to create one before ingesting anything from that directory.
+- Default template **must** set `desensitize.level: "strong"`.
+- Agent **never** silently proceeds without a config.
+
+### Schema
+
+See `schemas/nestwork.config.schema.json`. Minimum example:
+
+```json
+{
+  "$schema": "https://github.com/songth1ef/nestwork/schemas/nestwork.config.schema.json",
+  "version": "1.0",
+  "ingest": {
+    "target": "projects",
+    "name": "sign-mgt-web"
+  },
+  "desensitize": {
+    "level": "strong",
+    "custom_rules": []
+  }
+}
+```
+
+### Field semantics
+
+| Field | Values | Meaning |
+|---|---|---|
+| `ingest.target` | `projects` / `workflow` / `null` | Which Nestwork category receives content. `null` = not ingestable. |
+| `ingest.name` | string | Destination filename or subfolder under the target. |
+| `desensitize.level` | `none` / `weak` / `strong` | How aggressively content must be desensitized before ingestion. |
+| `desensitize.custom_rules` | string[] | User-defined rules specific to this directory (employer names, internal codenames, etc.). Layered on top of the global methodology. |
+
+### Desensitization levels
+
+- `none` — no transformation (only valid when content is verifiably non-confidential)
+- `weak` — pattern-based redaction following `custom_rules`
+- `strong` — AI-driven semantic desensitization following the methodology in `docs/desensitization-prompt.md`, plus all `custom_rules`
+
+### Constraints
+
+- Ingestion is **always agent-driven and manually triggered**; never automatic.
+- The config governs the **source side** only. It does not promise anything about what mynestwork does with the artifact afterwards.
+- Upstream `nestwork` provides only the methodology and prompt template for desensitization. Specific blacklists (employer names, project codenames) live in each user's `custom_rules` — never in upstream.
+
+---
+
 ## Priority Rules
 
 ```
-queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/*/memory.md  >  projects/*.md
+queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/*/memory.md  >  projects/*.md  >  workflow/*.md
 ```
 
 When instructions conflict, follow the higher priority source.

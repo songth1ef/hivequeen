@@ -2,7 +2,7 @@
 
 [中文](README.zh.md) | English
 
-Version: v0.3.0 | Protocol: 2.1
+Version: v0.3.0 | Protocol: 2.2
 
 Template it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git.
 
@@ -32,7 +32,8 @@ nestwork repo (your private queen)
 ├── queen/          ← read-only rules & strategy (you write this)
 ├── agents/         ← each agent writes ONLY to its own directory
 ├── shared/         ← compiled memory across all agents (read-only)
-└── projects/       ← per-project context files
+├── projects/       ← per-project context files
+└── workflow/       ← portable cross-project workflow knowledge (v2.2+)
 ```
 
 Every machine that clones your queen gets the same brain.
@@ -161,6 +162,12 @@ Edit `queen/strategy.md` — your current goals and decision direction.
 ### Your projects
 Add `projects/<project-name>.md` — context loaded when working on that project.
 
+### Your workflow (v2.2+)
+Add `workflow/<topic>.md` — portable workflow knowledge that survives across employers, projects, and machines: coding disciplines, tooling preferences, methodologies, migration guides.
+Full rules: [Workflow Protocol](docs/workflow-protocol.md).
+
+When external working directories want their content ingested into `projects/` or `workflow/`, they must declare a `nestwork.config.json` at the source declaring desensitization rules. See `AGENTS.md` Section 9 and `docs/workflow-protocol.md` for details.
+
 ---
 
 ## Compile shared memory
@@ -210,6 +217,9 @@ nestwork/
 │   └── memory.md               compiled cross-agent memory
 ├── projects/
 │   └── <project>.md            per-project context
+├── workflow/                   v2.2+: portable cross-project workflow knowledge
+│   ├── README.md
+│   └── <topic>.md
 └── scripts/
     ├── install/                   per-tool installers
     │   ├── claude.{sh,ps1}
@@ -238,7 +248,9 @@ nestwork/
 
 ## File size limits
 
-Each file has a line limit. When exceeded, split into topic files and use an index with links.
+**Universal rule**: any markdown file in the repo follows the same split pattern when oversized — the original filename becomes a folder, the original file becomes an index (or `<folder>/index.md`), and content splits by topic. Example: `plan-all.md` (1200 lines) → `plan-all.md` (index) + `plan/plan-a.md` / `plan/plan-b.md` / `plan/plan-c.md`.
+
+Files not listed below use defaults: soft limit 500 lines (start considering a split), hard limit 1000 lines (must split before next write).
 
 | File | Max lines |
 |---|---|
@@ -247,6 +259,7 @@ Each file has a line limit. When exceeded, split into topic files and use an ind
 | `agents/<host>/<agent-id>/memory.md` | 200 |
 | `shared/memory.md` | 500 |
 | `projects/<name>.md` | 150 |
+| `workflow/<topic>.md` | 200 |
 
 **Example — split `agents/macbook/claude/memory.md` when it hits 150 lines:**
 

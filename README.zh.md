@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-版本：v0.3.0 | 协议：2.1
+版本：v0.3.0 | 协议：2.2
 
 模板即继承，clone 即连接，所有 agent 共用同一个大脑。nestwork 是 git 原生的 AI agent memory 协议，用于 Claude Code、Codex CLI、Gemini CLI 等 AI coding agents 的 persistent memory 与 shared context，无需插件，无需服务器。
 
@@ -36,7 +36,8 @@ nestwork 仓库（你的私有母体）
 ├── queen/          ← 只读规则与策略（由你维护）
 ├── agents/         ← 每个 agent 只写自己的目录
 ├── shared/         ← 所有 agent 的编译记忆（只读）
-└── projects/       ← 项目上下文文件
+├── projects/       ← 项目上下文文件
+└── workflow/       ← 跨项目可迁移的工作流知识（v2.2+，详见下文）
 ```
 
 每台 clone 了你的母体的机器都共享同一个大脑。
@@ -162,6 +163,12 @@ bash ~/nestwork/scripts/install/aider.sh
 ### 你的项目
 添加 `projects/<项目名>.md` — 处理该项目时自动加载的上下文。
 
+### 你的工作流（v2.2+）
+添加 `workflow/<主题>.md` — 跨项目可迁移的工作流知识：编码纪律、工具偏好、方法论、迁移指南。
+完整规则：[Workflow Protocol](docs/workflow-protocol.md)。
+
+外部工作目录想被吸收进 `projects/` 或 `workflow/` 时，必须在源目录放一份 `nestwork.config.json` 声明脱敏规则。详见 `AGENTS.md` 第 9 节与 `docs/workflow-protocol.md`。
+
 ---
 
 ## 编译共享记忆
@@ -207,6 +214,9 @@ nestwork/
 │   └── memory.md               跨 agent 编译记忆
 ├── projects/
 │   └── <项目>.md               项目上下文
+├── workflow/                   v2.2+：跨项目可迁移的工作流知识
+│   ├── README.md
+│   └── <主题>.md
 └── scripts/
     ├── install/                   按工具分的安装器
     │   ├── claude.{sh,ps1}
@@ -235,7 +245,9 @@ nestwork/
 
 ## 文件行数限制
 
-每个文件有行数上限，超出后拆分为 topic 文件，原文件改为带链接的索引。
+**通用规则**：仓库内任意 markdown 文件超限后都按同一模式拆分 —— 原文件名变文件夹，原文件变索引（或 `<folder>/index.md`），内容按 topic 分文件。例如 `plan-all.md`(1200 行) → `plan-all.md`（索引）+ `plan/plan-a.md` / `plan/plan-b.md` / `plan/plan-c.md`。
+
+未在下表列出的文件按默认阈值：软限 500 行（开始考虑拆），硬限 1000 行（下次写入前必须拆）。
 
 | 文件 | 最大行数 |
 |---|---|
@@ -244,6 +256,7 @@ nestwork/
 | `agents/<host>/<agent-id>/memory.md` | 200 |
 | `shared/memory.md` | 500 |
 | `projects/<name>.md` | 150 |
+| `workflow/<topic>.md` | 200 |
 
 **示例 — `agents/macbook/claude/memory.md` 达到上限后拆分：**
 
