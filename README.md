@@ -17,6 +17,7 @@ No plugins, no servers, no third-party dependencies. Just a git repo.
 
 - [What problem does it solve?](#what-problem-does-it-solve)
 - [Core design principles](#core-design-principles)
+- [Why accumulate memory? Compounding for the future](#why-accumulate-memory-compounding-for-the-future)
 - [How it works](#how-it-works)
 - [Comparison with other approaches](#comparison-with-other-approaches)
 - [Quickstart](#quickstart)
@@ -81,6 +82,47 @@ It's not a tool — it's a **protocol**. Any agent that can read a markdown file
 
 6. **The protocol itself evolves**
    `protocol-version` header `MAJOR.MINOR`. Private nests can pin a trusted version. MAJOR bumps require downstream action; MINOR is additive-compatible.
+
+---
+
+## Why accumulate memory? Compounding for the future
+
+Common pushback: LLM context windows are finite today; storing all these memory files means agents can't read them all anyway — isn't this over-engineering?
+
+Answer: **What looks excessive today is just enough tomorrow and not enough the day after.**
+
+### The context window trajectory
+
+- **2023**: GPT-3.5 / Claude 2 mainstream 4K - 100K
+- **2024**: Claude 3.5 Sonnet 200K, Gemini 1.5 Pro 1M (experimental)
+- **2025**: Claude Opus 4 / 4.5 standardized 200K, 1M reaches production
+- **2026 onward**: 1M becomes mainstream, 10M / 100M enter experimental, **1B is the visible next step**
+
+Each generational expansion shifts the ratio of "context = memory + work". Today, allocating 50K of a 200K window to memory feels heavy; in the 1M era, 200K for memory is normal; in the 1B era, **your entire career's notes fit in a single load**.
+
+### Storage compounds, retrieval comes later
+
+- **Today**: the agent picks relevant memory files to read. You store 100 files; it reads 3-5 per session — 95% looks "wasted".
+- **3 years from now**: context windows expand 100x; the agent can read all memory across all projects in one shot, **cross-project pattern recognition emerges**. Today's "excessive storage" is tomorrow's gold mine.
+- **Key insight**: **storage cost is near zero** (git repo + GitHub private), **write happens once**, but **read value grows exponentially with model capability**. That is compounding.
+
+### Backup is independent of use
+
+Even if a memory has **no use today**:
+
+- It's a versioned archive of your past thinking, decisions, and lessons
+- It's training data for your **future personal fine-tuned model**
+- It's a **cognitive backup** when you change devices, employers, or tools
+- It's the **only evidence** when you ask "why did I make that decision 3 years ago?"
+
+Git repos have minuscule marginal cost; stored value grows over time. **Writing is intrinsically valuable, even when no one is reading yet.**
+
+### Practical guidelines
+
+- Don't undersave because "the agent can't read it all". When in doubt, write. Split per v2.2 universal split protocol.
+- The split protocol itself is built for large-context futures: today agents read index + topics on demand; tomorrow they read everything in one pass.
+- Decisions, pitfalls, pattern recognition, cross-project methodologies → write them down. Even a one-liner.
+- Treat nestwork as your **career-long external brain**, not a session-scoped cache.
 
 ---
 

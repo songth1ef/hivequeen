@@ -31,6 +31,8 @@ PROTOCOL_FILES=(
   SOUL.md
   README.md
   README.zh.md
+  CHANGELOG.md
+  CHANGELOG.zh.md
   docs/
   schemas/
   workflow/README.md
