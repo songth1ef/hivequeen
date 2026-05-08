@@ -6,6 +6,8 @@ Version: v0.3.0 | Protocol: 2.2
 
 [![Protocol](https://img.shields.io/badge/protocol-2.2-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
+> **About `agent-history-*` branches**: orphan branches introduced in v2.4 hold rolling-overwrite snapshots of high-churn artefacts (e.g. `history.jsonl`). They each contain a single force-pushed commit and are **not meant to be merged into `main`**. Ignore GitHub's "Compare & pull request" prompt for these branches. See [AGENTS.md §12](AGENTS.md) for details.
+
 ---
 
 ## Purpose

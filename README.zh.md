@@ -6,6 +6,8 @@
 
 [![Protocol](https://img.shields.io/badge/protocol-2.2-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
+> **关于 `agent-history-*` 分支**：v2.4 引入的孤儿分支，保存高频 artefact（如 `history.jsonl`）的滚动覆盖快照。每个分支只有一个 force-push 的 commit，**不应合并到 `main`**。GitHub 主页提示 "Compare & pull request" 时直接忽略。详见 [AGENTS.md §12](AGENTS.md)。
+
 ---
 
 ## 目的
