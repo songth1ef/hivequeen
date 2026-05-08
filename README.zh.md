@@ -4,209 +4,73 @@
 
 版本：v0.3.0 | 协议：2.2
 
----
-
-**把模板克隆到任意机器，所有 AI agent 共享同一个大脑。**
-git 原生的 AI agent 记忆协议，灵感来自《安德的游戏》虫族蜂巢意识 —— 每个工蜂连到同一个女王，没有独立记忆，没有冲突自我，一个分布式智能体。
-
-无插件、无服务器、无第三方依赖。只需要一个 git 仓。
+[![Protocol](https://img.shields.io/badge/protocol-2.2-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
 ---
 
-## 目录
+## 目的
 
-- [它解决什么问题](#它解决什么问题)
-- [核心设计原则](#核心设计原则)
-- [为什么要积累记忆？面向未来的复利](#为什么要积累记忆面向未来的复利)
-- [工作原理](#工作原理)
-- [与其他方案对比](#与其他方案对比)
-- [快速开始](#快速开始)
-- [自定义你的 nest](#自定义你的-nest)
-- [v2.2 新增：workflow/ 与 nestwork.config.json](#v22-新增workflow-与-nestworkconfigjson)
-- [真实工作流示例](#真实工作流示例)
-- [编译共享记忆（distillation）](#编译共享记忆distillation)
-- [目录结构](#目录结构)
-- [文件行数限制与拆分协议](#文件行数限制与拆分协议)
-- [为什么不会产生冲突](#为什么不会产生冲突)
-- [支持的工具](#支持的工具)
-- [跟踪上游更新](#跟踪上游更新)
-- [FAQ](#faq)
-- [故障排查](#故障排查)
-- [灵感来源](#灵感来源)
+**一句话**：把 git 仓当成 AI coding agent 的共享外脑 —— 你的所有 agent（Claude / Codex / Gemini / 任何读 markdown 的 CLI）跨 session、跨机器、跨工具、跨厂商共享同一份记忆。无插件、无服务器、无第三方依赖，只需要一个 git 仓。
 
----
+灵感来自《安德的游戏》虫族蜂巢意识：每个工蜂连到同一个女王，没有独立记忆，没有冲突自我，一个分布式智能体。你（人）是 queen，你的所有 agent 实例是 worker，连到同一个 git 仓 = 同一个大脑。
 
-## 它解决什么问题
+### 要解决的问题
+- session 关掉就忘、换设备/换工具上下文重建
+- 多 agent 之间没有共享认知的协议层
+- 厂商私有 memory（OpenAI Memory 等）锁定生态、无法迁移
+- 团队场景下，"项目知识"没有可沉淀的位置
 
-AI coding agent（Claude Code、Codex CLI、Gemini CLI 等）在以下场景会丢失记忆与上下文：
+### 要达成的效果
 
-- 关闭 session 后，下次对话从零开始
-- 换一台电脑，所有积累的上下文重新建立
-- 从一个工具切到另一个（如 Claude → Codex），偏好和习惯失效
-- 多个 agent 协作时，无法共享对项目与用户的理解
-- 团队场景下，无法把"项目知识"沉淀给后续 agent
+> [!TIP]
+> **跨 session / 跨机器 / 跨工具 / 跨厂商共享同一份记忆。**
 
-常见解决方案各有局限：
+- 记忆 100% 在你自己的 git 仓里，零厂商锁定、离线可用
+- 协议级的多 agent 协作（不是某个工具的特性）
 
-| 方案 | 局限 |
+### 核心洞察：储存即复利
+
+**写入只发生一次，读取价值随模型能力指数级放大。**
+
+今天上下文窗口 200K，agent 只能挑相关 memory 读，95% 看似浪费。但：
+
+- **2025**：200K 标配，1M 进生产
+- **2026 起**：1M 主流，10M / 100M 进实验，1B 是可见的下一站
+
+> [!IMPORTANT]
+> **3 年后：上下文 100x，agent 一次读完你所有项目的全部笔记 —— 跨项目模式识别能力涌现。**
+
+git 仓的存储成本基本为零，但储存的边际价值随时间指数增长。即使一份记忆**今天用不上**，它也是：
+- 你过去思考、决策、踩坑的版本化档案
+- 未来训练个人微调模型的语料
+- 换设备/换雇主/换工具时的认知备份
+- 回溯"3 年前我为什么做了那个决定"的唯一证据
+
+**写下来本身就是有价值的，哪怕暂时没人读。** nestwork 不是当前会话的临时缓存，是你的**职业生涯外脑**。
+
+### 适合谁
+
+> [!NOTE]
+> **长期与多个 AI agent 共事、跨机器/跨工具开发、想把职业认知沉淀成可携带资产的开发者。**
+
+### 全文速览
+
+| 章节 | 一句话答案 |
 |---|---|
-| 在 agent 配置文件塞长 system prompt | 跨设备不同步、跨工具不复用、维护痛苦 |
-| MCP memory server | 需要跑服务、单点故障、跨机器要部署 |
-| 厂商私有 memory（如 OpenAI Memory） | 锁定厂商、不开放、无法跨厂商迁移 |
-| claude-mem 等托管 memory | 依赖第三方 worker、可能付费、隐私敏感 |
-| 自建数据库 + API | 重资产、与 agent 解耦、维护成本高 |
-| 在每个项目放 README/AGENT.md | 不跨项目共享、用户偏好无处可放 |
-
-**nestwork 的答案：用 git 仓做 agent 大脑。** 每个 agent 把记忆写到 git 仓里特定目录，下次启动时 `git pull` 就能跨 session、跨机器、跨工具读到。
-
-它不是一个工具，是一个**协议** —— 任何能读 markdown 文件作为 system prompt 的 agent 都可以接入。
-
----
-
-## 核心设计原则
-
-1. **git 即唯一基础设施**
-   不引入服务器、不引入数据库、不引入第三方服务。git 已经解决了"分布式存储 + 版本控制 + 冲突解决"，重复造轮子是错误。
-
-2. **读写隔离 = 结构上无冲突**
-   每个 agent 独占一个目录（`agents/<host>/<agent-id>/`），正常记忆写入永远不会与其他 agent 撞。配合 hook 的"原子逐次写入"，单次 Write/Edit 之内的竞态窗口也被消除。
-
-3. **记忆分层 + 严格优先级链**
-   不同性质的内容放不同层。冲突时按优先级取，不合并。这避免了"所有信息糊在一起，agent 不知道听谁的"。
-
-4. **模板化 + 私有实例**
-   `nestwork`（公开模板）演进协议，每个用户用 `Use this template` 创建私有实例。私有数据永不外泄，协议演进选择性 pull。
-
-5. **跨工具中立**
-   AGENTS.md 是 bootstrap 唯一来源，CLAUDE.md / SOUL.md / GEMINI.md 等都是它的镜像或链接。换工具不用换记忆。
-
-6. **协议本身可演进**
-   `protocol-version` 头部标记 `MAJOR.MINOR`，私有仓可锁定信任版本。MAJOR 升级才需要下游动作；MINOR 是 additive 兼容。
-
----
-
-## 为什么要积累记忆？面向未来的复利
-
-一个常见质疑：当前 LLM 上下文窗口是有限的，存这么多记忆文件 agent 也读不完，是不是过度设计？
-
-答案是：**今天看起来过量，明天就刚好够，后天就嫌少。**
-
-### 上下文窗口的演进曲线
-
-- **2023**：GPT-3.5 / Claude 2 主流 4K - 100K
-- **2024**：Claude 3.5 Sonnet 200K，Gemini 1.5 Pro 1M（实验阶段）
-- **2025**：Claude Opus 4 / 4.5 标配 200K，1M 进入生产
-- **2026 起**：1M 成主流，10M / 100M 进实验，**1B 是可见的下一站**
-
-每一代上下文窗口扩大，"上下文 = 记忆 + 工作"的等式中，**记忆能占的比例就更大**。今天 200K 里给 memory 留 50K 已经压力大；1M 时代给 memory 留 200K 是常态；1B 时代你**整个职业生涯的笔记都能塞进去一次**。
-
-### 储存即复利，使用是后续
-
-- **今天**：agent 只能挑相关的 memory 文件读。你存 100 个文件，每次只读 3-5 个，那 95% 看似浪费。
-- **3 年后**：上下文窗口 100x，agent 可以一次读你所有项目的全部 memory，**跨项目模式识别能力涌现**。今天的"过量储存"，3 年后是金矿。
-- **关键洞察**：**存储成本基本为零**（git 仓 + GitHub 私有），**写入只发生一次**，但**读取价值随模型能力指数级放大**。这就是复利。
-
-### 备份独立于使用
-
-即使一份记忆**今天用不上**：
-
-- 它是你过去思考、决策、踩坑的**版本化档案**
-- 是你**未来训练个人微调模型**的语料
-- 是你**换设备 / 换雇主 / 换工具时的认知备份**
-- 是你**回溯"3 年前我为什么做了那个决定"的唯一证据**
-
-git 仓的边际成本极低，但储存的边际价值随时间增长。**写下来本身就是有价值的，哪怕暂时没人读。**
-
-### 实用建议
-
-- 不要为"agent 读不完"而少存。该写就写，该拆就拆（按 v2.2 通用拆分协议）。
-- 拆分协议本身就是为大上下文准备的：今天 agent 按需读索引 + topic；明天 agent 一次读全。
-- 遇到决策、踩坑、模式识别、跨项目方法论 → 写。哪怕只是简短一行。
-- 把 nestwork 当成你的**职业生涯外脑**，不是当前会话的临时缓存。
-
----
-
-## 工作原理
-
-### 仓库结构（v2.2 协议）
-
-```
-nestwork 仓库（你的私有 queen）
-├── queen/          ← 只读规则与策略（由你维护）
-│   ├── agent-rules.md       # 行为边界，最高优先级
-│   └── strategy.md          # 当前阶段战略
-├── agents/         ← 每个 agent 只写自己的目录
-│   └── <host>/<agent-id>/   # 一台机器一个 host，一个工具一个 agent-id
-│       └── memory.md        # 该 agent 的私有记忆
-├── shared/         ← 跨 agent 蒸馏出的共识（只读）
-│   └── memory.md
-├── projects/       ← 项目上下文文件
-│   └── <项目名>.md
-└── workflow/       ← v2.2+：跨项目可迁移的工作流知识
-    ├── README.md
-    └── <主题>.md
-```
-
-每台克隆了你的 queen 的机器都共享同一个大脑。每个 agent 实例只写自己的 `agents/<host>/<agent-id>/`，正常记忆写入彼此隔离。
-
-### 优先级链
-
-```
-queen/agent-rules.md > queen/strategy.md > shared/memory.md > agents/*/*/memory.md > projects/*.md > workflow/*.md
-```
-
-冲突时取高优先级，**不合并**。
-
-### Session 生命周期
-
-```
-Session 开始
-  ↓
-git pull --rebase                          (SessionStart hook 自动)
-  ↓
-按优先级链加载上下文                       (注入到 agent 的 system prompt)
-  ↓
-agent 自我定向（看 git log + strategy.md，给状态摘要 + 下一步建议）
-  ↓
-─── 工作中 ─────────────────────────────
-  ↓
-Write/Edit 触发 PreToolUse hook
-  ↓
-git pull --rebase（防止覆盖远程更新）
-  ↓
-执行写入
-  ↓
-PostToolUse hook：git add/commit/push
-  ↓
-（push 失败重试 3 次，每次重 pull）
-─────────────────────────────────────
-  ↓
-Session 结束
-  ↓
-Stop hook 安全网 commit+push（clean 时无操作）
-  ↓
-SessionEnd hook：claude-mem export + 本地 history sync（如开启）
-```
-
-竞态窗口从"整场会话"压到"单次写入"。同机多 agent 几乎不会撞。
-
----
-
-## 与其他方案对比
-
-| 维度 | nestwork | MCP memory server | claude-mem | 厂商私有 memory | 自建数据库 |
-|---|---|---|---|---|---|
-| 基础设施 | git 仓 | 本地服务器 | 远程 worker | 厂商云 | 自建服务 |
-| 跨设备 | ✅ git pull | ❌ 需要部署 | ✅ 但依赖 worker | ✅ 厂商账号 | 取决于实现 |
-| 跨工具 | ✅ 任何 markdown-config agent | 部分（需 MCP 客户端） | 仅 Claude | ❌ 锁定厂商 | 取决于实现 |
-| 跨账号迁移 | ✅ 改 remote 即可 | ✅ | 部分 | ❌ | ✅ |
-| 多 agent 协作 | ✅ 协议级支持 | 需要协调 | 单 agent | 单厂商 | 取决于实现 |
-| 离线可用 | ✅ | 取决于实现 | ❌ | ❌ | 取决于实现 |
-| 数据所有权 | 100% 你的 git 仓 | 100% 本地 | 第三方 worker | 厂商 | 你的 |
-| 维护成本 | 低（git 你已会） | 中（需懂 MCP） | 中（依赖 worker） | 零（但锁定） | 高 |
-| 隐私 | 私有仓即可 | 看部署 | 第三方风险 | 看条款 | 看部署 |
-
-详见 [docs/comparisons/claude-mem.md](docs/comparisons/claude-mem.md)。
+| [快速开始](#快速开始) | 3 步：从 template 建私有仓 → clone 到每台机器 → 跑 installer |
+| [工作原理](#工作原理) | 优先级链 + session 生命周期 + 原子逐次写入 hook 架构 |
+| [核心设计原则](#核心设计原则) | 6 条不可妥协：git-only、读写隔离、记忆分层、模板化私有实例、跨工具中立、协议可演进 |
+| [与其他方案对比](#与其他方案对比) | 为什么不用 MCP server / claude-mem / 厂商 memory / 自建数据库 |
+| [为什么要积累记忆](#为什么要积累记忆面向未来的复利) | "核心洞察"的完整论证 + 上下文窗口演进曲线 + 实用建议 |
+| [自定义你的 nest](#自定义你的-nest) | 编辑 `queen/` `projects/` `workflow/` 各层 |
+| [v2.2 新增](#v22-新增workflow-与-nestworkconfigjson) | `workflow/` 跨项目知识层 + `nestwork.config.json` 外部目录脱敏吸收契约 |
+| [真实工作流示例](#真实工作流示例) | 多机协作 / 跨工具迁移 / 雇主项目知识沉淀 |
+| [编译共享记忆](#编译共享记忆distillation) | `compile.sh` 拼接 vs `distill.py` LLM 蒸馏，非破坏性合并到 `shared/` |
+| [目录结构](#目录结构) / [行数限制](#文件行数限制与拆分协议) | 仓库布局 + 文件拆分协议 |
+| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Hermes / Aider / generic 任何 markdown-config CLI + IDE 插件软链接 |
+| [跟踪上游更新](#跟踪上游更新) | GitHub Action 自动 PR 或 `update.sh` 手动同步，不动你的私有数据 |
+| [FAQ](#faq) / [故障排查](#故障排查) | 常见疑问与排错清单 |
+| [不做什么](#不做什么non-goals) | nestwork 明确不解决的问题 |
 
 ---
 
@@ -261,6 +125,159 @@ bash ~/nestwork/scripts/install/codex.sh
 
 - **发现可配置功能**
   > 阅读 https://github.com/songth1ef/nestwork 的 README，列出 nestwork 所有可配置功能（hooks、可选同步、过滤等），并根据我当前机器场景建议要不要开启。
+
+---
+
+## 工作原理
+
+### 优先级链
+
+```
+queen/agent-rules.md > queen/strategy.md > shared/memory.md > agents/*/*/memory.md > projects/*.md > workflow/*.md
+```
+
+冲突时取高优先级，**不合并**。仓库布局详见 [目录结构](#目录结构)。
+
+### Session 生命周期
+
+```
+Session 开始
+  ↓
+git pull --rebase                          (SessionStart hook 自动)
+  ↓
+按优先级链加载上下文                       (注入到 agent 的 system prompt)
+  ↓
+agent 自我定向（看 git log + strategy.md，给状态摘要 + 下一步建议）
+  ↓
+─── 工作中 ─────────────────────────────
+  ↓
+Write/Edit 触发 PreToolUse hook
+  ↓
+git pull --rebase（防止覆盖远程更新）
+  ↓
+执行写入
+  ↓
+PostToolUse hook：git add/commit/push
+  ↓
+（push 失败重试 3 次，每次重 pull）
+─────────────────────────────────────
+  ↓
+Session 结束
+  ↓
+Stop hook 安全网 commit+push（clean 时无操作）
+  ↓
+SessionEnd hook：claude-mem export + 本地 history sync（如开启）
+```
+
+竞态窗口从"整场会话"压到"单次写入"。同机多 agent 几乎不会撞。
+
+### Hook 架构（原子逐次写入，2026-04-17 引入）
+
+| Hook 事件 | 动作 | 作用 |
+|---|---|---|
+| **SessionStart** | pull + 注入 agent-rules / strategy / shared / agent memory / `workflow/*` 到 additionalContext | 替代手动启动协议 |
+| **PreToolUse** (Write\|Edit, scoped to `agents/<id>/`) | `git pull --rebase`；冲突 `exit 2` 阻止写入 | 防止覆盖远程更新 |
+| **PostToolUse** (同 scope) | `git add/commit/push`；push 失败 3 次重试（每次重 pull） | 即时同步 |
+| **Stop** | 安全网 commit+push（clean 时为 no-op） | 兜底 |
+| **SessionEnd** | claude-mem export + 本地 history sync | 跨机可达 |
+
+只有 Claude Code 注册了 session hook。其他工具走"会话结束提交"协议（详见 [支持的工具](#支持的工具)）。
+
+---
+
+## 核心设计原则
+
+1. **git 即唯一基础设施**
+   不引入服务器、不引入数据库、不引入第三方服务。git 已经解决了"分布式存储 + 版本控制 + 冲突解决"，重复造轮子是错误。
+
+2. **读写隔离 = 结构上无冲突**
+   每个 agent 独占一个目录（`agents/<host>/<agent-id>/`），正常记忆写入永远不会与其他 agent 撞。配合 hook 的"原子逐次写入"，单次 Write/Edit 之内的竞态窗口也被消除。
+
+3. **记忆分层 + 严格优先级链**
+   不同性质的内容放不同层。冲突时按优先级取，不合并。这避免了"所有信息糊在一起，agent 不知道听谁的"。
+
+4. **模板化 + 私有实例**
+   `nestwork`（公开模板）演进协议，每个用户用 `Use this template` 创建私有实例。私有数据永不外泄，协议演进选择性 pull。
+
+5. **跨工具中立**
+   AGENTS.md 是 bootstrap 唯一来源，CLAUDE.md / SOUL.md / GEMINI.md 等都是它的镜像或链接。换工具不用换记忆。
+
+6. **协议本身可演进**
+   `protocol-version` 头部标记 `MAJOR.MINOR`，私有仓可锁定信任版本。MAJOR 升级才需要下游动作；MINOR 是 additive 兼容。
+
+---
+
+## 与其他方案对比
+
+### 主流方案的局限
+
+| 方案 | 局限 |
+|---|---|
+| 在 agent 配置文件塞长 system prompt | 跨设备不同步、跨工具不复用、维护痛苦 |
+| MCP memory server | 需要跑服务、单点故障、跨机器要部署 |
+| 厂商私有 memory（如 OpenAI Memory） | 锁定厂商、不开放、无法跨厂商迁移 |
+| claude-mem 等托管 memory | 依赖第三方 worker、可能付费、隐私敏感 |
+| 自建数据库 + API | 重资产、与 agent 解耦、维护成本高 |
+| 在每个项目放 README/AGENT.md | 不跨项目共享、用户偏好无处可放 |
+
+**nestwork 的答案**：用 git 仓做 agent 大脑。每个 agent 把记忆写到 git 仓里特定目录，下次启动时 `git pull` 就能跨 session、跨机器、跨工具读到。它不是工具，是**协议** —— 任何能读 markdown 文件作为 system prompt 的 agent 都可以接入。
+
+### 维度对比
+
+| 维度 | nestwork | MCP memory server | claude-mem | 厂商私有 memory | 自建数据库 |
+|---|---|---|---|---|---|
+| 基础设施 | git 仓 | 本地服务器 | 远程 worker | 厂商云 | 自建服务 |
+| 跨设备 | ✅ git pull | ❌ 需要部署 | ✅ 但依赖 worker | ✅ 厂商账号 | 取决于实现 |
+| 跨工具 | ✅ 任何 markdown-config agent | 部分（需 MCP 客户端） | 仅 Claude | ❌ 锁定厂商 | 取决于实现 |
+| 跨账号迁移 | ✅ 改 remote 即可 | ✅ | 部分 | ❌ | ✅ |
+| 多 agent 协作 | ✅ 协议级支持 | 需要协调 | 单 agent | 单厂商 | 取决于实现 |
+| 离线可用 | ✅ | 取决于实现 | ❌ | ❌ | 取决于实现 |
+| 数据所有权 | 100% 你的 git 仓 | 100% 本地 | 第三方 worker | 厂商 | 你的 |
+| 维护成本 | 低（git 你已会） | 中（需懂 MCP） | 中（依赖 worker） | 零（但锁定） | 高 |
+| 隐私 | 私有仓即可 | 看部署 | 第三方风险 | 看条款 | 看部署 |
+
+详见 [docs/comparisons/claude-mem.md](docs/comparisons/claude-mem.md)。
+
+---
+
+## 为什么要积累记忆？面向未来的复利
+
+一个常见质疑：当前 LLM 上下文窗口是有限的，存这么多记忆文件 agent 也读不完，是不是过度设计？
+
+答案是：**今天看起来过量，明天就刚好够，后天就嫌少。**
+
+### 上下文窗口的演进曲线
+
+- **2023**：GPT-3.5 / Claude 2 主流 4K - 100K
+- **2024**：Claude 3.5 Sonnet 200K，Gemini 1.5 Pro 1M（实验阶段）
+- **2025**：Claude Opus 4 / 4.5 标配 200K，1M 进入生产
+- **2026 起**：1M 成主流，10M / 100M 进实验，**1B 是可见的下一站**
+
+每一代上下文窗口扩大，"上下文 = 记忆 + 工作"的等式中，**记忆能占的比例就更大**。今天 200K 里给 memory 留 50K 已经压力大；1M 时代给 memory 留 200K 是常态；1B 时代你**整个职业生涯的笔记都能塞进去一次**。
+
+### 储存即复利，使用是后续
+
+- **今天**：agent 只能挑相关的 memory 文件读。你存 100 个文件，每次只读 3-5 个，那 95% 看似浪费。
+- **3 年后**：上下文窗口 100x，agent 可以一次读你所有项目的全部 memory，**跨项目模式识别能力涌现**。今天的"过量储存"，3 年后是金矿。
+- **关键洞察**：**存储成本基本为零**（git 仓 + GitHub 私有），**写入只发生一次**，但**读取价值随模型能力指数级放大**。这就是复利。
+
+### 备份独立于使用
+
+即使一份记忆**今天用不上**：
+
+- 它是你过去思考、决策、踩坑的**版本化档案**
+- 是你**未来训练个人微调模型**的语料
+- 是你**换设备 / 换雇主 / 换工具时的认知备份**
+- 是你**回溯"3 年前我为什么做了那个决定"的唯一证据**
+
+git 仓的边际成本极低，但储存的边际价值随时间增长。**写下来本身就是有价值的，哪怕暂时没人读。**
+
+### 实用建议
+
+- 不要为"agent 读不完"而少存。该写就写，该拆就拆（按 v2.2 通用拆分协议）。
+- 拆分协议本身就是为大上下文准备的：今天 agent 按需读索引 + topic；明天 agent 一次读全。
+- 遇到决策、踩坑、模式识别、跨项目方法论 → 写。哪怕只是简短一行。
+- 把 nestwork 当成你的**职业生涯外脑**，不是当前会话的临时缓存。
 
 ---
 
@@ -557,32 +574,6 @@ LLM 上下文窗口虽大，但**注意力随 token 数衰减**。把一个 5000
 
 ---
 
-## 为什么不会产生冲突
-
-每个 agent 独占 `agents/` 下的一个目录，没有两个 agent 写同一个文件。正常使用下，git 冲突从结构上就不可能发生。
-
-| 路径 | 谁写 | 可能冲突？ |
-|---|---|---|
-| `queen/` | 你（人工） | 不会（你只有一双手） |
-| `agents/<host>/<agent-id>/` | 仅该 agent | 正常记忆写入不会 |
-| `shared/` | 仅显式 `compile.sh` / `distill.py --run-codex` | 正常 agent 写记忆时不会 |
-| `projects/` | agent 或人工 | 多 agent 同时写同一项目文件**理论上**可能，但通过 PreToolUse hook 的 `git pull --rebase` 大幅降低 |
-| `workflow/` | agent 或人工 | 同上 |
-
-### Hook 架构（原子逐次写入，2026-04-17 引入）
-
-竞态窗口从"整场会话"压缩到"单次 Write 执行"：
-
-| Hook 事件 | 动作 | 作用 |
-|---|---|---|
-| **SessionStart** | pull + 注入 agent-rules/strategy/shared/agent memory 到 additionalContext | 替代手动启动协议 |
-| **PreToolUse** (Write\|Edit, scoped to `agents/<id>/`) | `git pull --rebase`；冲突 `exit 2` 阻止写入 | 防止覆盖远程更新 |
-| **PostToolUse** (同 scope) | `git add/commit/push`；push 失败 3 次重试（每次重 pull） | 即时同步 |
-| **Stop** | 安全网 commit+push（clean 时为 no-op） | 兜底 |
-| **SessionEnd** | claude-mem export + 本地 history sync | 跨机可达 |
-
----
-
 ## 支持的工具
 
 ### 原生安装器（配置路径明确）
@@ -709,9 +700,19 @@ Fork 默认公开，且与上游强关联。每次上游更新都会与你私有
 
 能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。但只有 Claude Code 有 hook 系统，能实现原子逐次写入。其他工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。
 
-### 多台机器同时改同一个 `projects/<name>.md` 会冲突吗？
+### 多 agent 同时写会冲突吗？
 
-理论上可能，实际几乎不会。PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到单次写入。两台机器**同一秒**写同一文件才会撞，正常协作场景几乎不发生。万一发生，hook 会 `exit 2` 阻止写入并提示手动合并。
+每个 agent 独占 `agents/<host>/<agent-id>/` 一个目录，正常记忆写入不会冲突。可能冲突的路径：
+
+| 路径 | 谁写 | 可能冲突？ |
+|---|---|---|
+| `queen/` | 你（人工） | 不会（你只有一双手） |
+| `agents/<host>/<agent-id>/` | 仅该 agent | 正常记忆写入不会 |
+| `shared/` | 仅显式 `compile.sh` / `distill.py --run-codex` | 正常 agent 写记忆时不会 |
+| `projects/` | agent 或人工 | 多 agent 同时写**理论上**可能，PreToolUse hook 的 `git pull --rebase` 大幅降低 |
+| `workflow/` | agent 或人工 | 同上 |
+
+PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到单次写入。两台机器**同一秒**写同一文件才会撞，正常协作场景几乎不发生。万一发生，hook 会 `exit 2` 阻止写入并提示手动合并。
 
 ### `shared/memory.md` 是怎么来的？
 
@@ -818,11 +819,19 @@ git remote set-url origin <你的私有 git>
 
 ---
 
-## 灵感来源
+## 不做什么（Non-goals）
 
-《安德的游戏》（Ender's Game）中虫族（Formic）的蜂巢意识。每个工蜂连到同一个女王，没有独立记忆，没有冲突自我，一个分布式智能体。
+为了让 nestwork 保持轻量、协议中立、git-only，下面这些**明确不在范围内**：
 
-nestwork 把这个隐喻搬到 AI agent：你（人）就是 queen，你的所有 agent 实例（Claude、Codex、Gemini……）都是 worker，连到同一个 git 仓 = 同一个大脑。
+- **团队级 ACL / 权限管理**：仓库可见性靠 GitHub/GitLab 自身权限，nestwork 不引入额外的访问控制层
+- **服务端 API / 同步服务**：永远不会加 server，所有同步都靠 git push/pull
+- **端到端加密**：private 仓默认依赖 GitHub 安全模型；高敏感信息不该写进 nestwork（用 secret store）
+- **实时协作 / 实时通知**：git 是异步的；如果两 agent 真的同秒写同文件，靠 PreToolUse hook 阻止，不靠实时锁
+- **跨厂商 LLM 调用抽象**：蒸馏脚本用 Codex，但不试图统一所有 LLM API。换工具时 agent 自己读 markdown 即可
+- **GUI / 网页版**：纯文件协议，所有交互通过 agent 自己或 git 命令行
+- **自动 onboarding / 教程引导**：README 是入口，不做交互式向导
+
+如果你需要其中某项，nestwork 可能不适合 —— 选一个对应专门工具更合适。
 
 ---
 
