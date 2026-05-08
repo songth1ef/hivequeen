@@ -14,6 +14,55 @@
 
 ---
 
+## v0.6.0 - 2026-05-08
+
+### Protocol v2.4
+
+为"高频追加 + delta 压缩极差"的 artefact（典型：启用 `sync_local_history` 后的 `history.jsonl`）提供独立的存储路径，避免主仓 history 无界膨胀。
+
+- **AGENTS.md §12 新增** —— 高频 artefact 走 per-agent 孤儿分支
+  `agent-history-<host>-<agent-id>`：每次写入通过 `git commit-tree` +
+  `git update-ref` 重建为单 commit（无 parent）force-push 覆盖前一次快照。
+  分支命名天然单写者（host + agent-id），force-push 永不冲突。
+- **`agents/*/*/local/` 默认 `.gitignore`** —— main 不再吸收高频 artefact，
+  备份完全走孤儿分支。
+- **新增 `scripts/hooks/snapshot-local-orphan.sh`** —— 快照构建脚本，
+  使用 `GIT_INDEX_FILE` 临时索引避免污染主工作树；只有 tree hash 变化时
+  才创建新 commit；force-push 失败不阻塞 agent。
+- **`scripts/hooks/sync-local-history.sh` 在 python sync 后自动 invoke
+  snapshot 脚本** —— 用户无需任何配置改动；启用 `sync_local_history` 即
+  享受新机制。
+- **跨机恢复**：`git fetch origin agent-history-<host>-<agent-id>` →
+  `git restore --source=...`，单条命令。
+
+### 实测效果
+
+下游实例 mynestwork 在启用 `sync_local_history` 半个月后 .git 膨胀到 177 MB
+（411 个 history.jsonl commit）。通过 `git filter-repo` 清理历史 + 改用本机制
+后，仓库降到 1.6 MB（**-99%**），备份完整保留在 4 个孤儿分支上。
+
+### 新增
+
+- `scripts/hooks/snapshot-local-orphan.sh`
+
+### 变更
+
+- `scripts/hooks/sync-local-history.sh` —— 末尾追加对 snapshot 脚本的调用
+- `.gitignore` —— 加 `agents/*/*/local/`
+
+### 升级提示（私有实例）
+
+升级到 v2.4 后，新写入的 `local/` 自动走孤儿分支，main 不再增长。**已存在的
+历史膨胀需要手动清理一次**：
+1. `pip install git-filter-repo`
+2. `git filter-repo --path-glob 'agents/*/*/local/*' --invert-paths --refs main --force`
+3. `git push origin main --force`
+4. `git gc --aggressive --prune=now`
+
+destructive 操作前请备份 `.git`。
+
+---
+
 ## v0.5.0 - 2026-05-08
 
 ### Protocol v2.3

@@ -19,3 +19,9 @@ NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 python3 "$NESTWORK_PATH/scripts/hooks/sync-local-history.py" \
   "$NESTWORK_PATH" "$HOST_ID" "$AGENT_ID" || exit 0
+
+# After sync, push a snapshot of agents/<host>/<id>/local/ to the per-agent
+# orphan branch. Keeps cross-machine backup without bloating main history.
+# See AGENTS.md §12.
+bash "$NESTWORK_PATH/scripts/hooks/snapshot-local-orphan.sh" \
+  "$HOST_ID" "$AGENT_ID" || true

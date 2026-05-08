@@ -15,7 +15,7 @@
 
 # NESTWORK BOOTSTRAP
 
-<!-- protocol-version: 2.3 -->
+<!-- protocol-version: 2.4 -->
 
 Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly on every session.
@@ -427,6 +427,51 @@ Implementation contract:
 - Only **MAJOR.MINOR mismatch where upstream > local** triggers the advisory
 
 User remains in control: the hook only emits an advisory; nothing is auto-applied.
+
+---
+
+## 12. High-churn artefacts: per-agent orphan branches (v2.4+)
+
+Some artefacts mirrored into `agents/<host>/<id>/local/` (e.g.
+`history.jsonl` from `sync_local_history`) are **high-frequency, large, and
+poorly delta-compressed**. Committing them to `main` causes the main branch
+to bloat unboundedly (observed in practice: 411 commits → 177 MB in two
+weeks).
+
+These artefacts are kept out of `main` and stored on a per-agent **orphan
+branch** instead:
+
+```
+agent-history-<host>-<agent-id>
+```
+
+### Mechanics
+
+- `agents/*/*/local/` is in the default `.gitignore` shipped by upstream — main never tracks it.
+- After each `sync_local_history` invocation, `scripts/hooks/sync-local-history.sh` calls `scripts/hooks/snapshot-local-orphan.sh`, which:
+  - Builds a tree from the working-tree `local/` files using a temporary index (without touching the main working index).
+  - Creates a parentless commit (orphan).
+  - `git update-ref` on `refs/heads/agent-history-<host>-<agent-id>`.
+  - Force-pushes that branch to `origin`.
+- Each force-push **replaces** the previous snapshot. Branch always has exactly one commit. Remote object count stabilises at ≈ current `local/` size.
+
+### Cross-machine restore
+
+```bash
+git fetch origin agent-history-<host>-<agent-id>
+git restore --source=agent-history-<host>-<agent-id> -- \
+  agents/<host>/<agent-id>/local/
+```
+
+### Why this is safe
+
+- **Single writer per branch**: branch name embeds `host` and `agent-id`. No other instance ever writes the same branch — force-push is collision-free by design.
+- **Independent of `main`**: orphan branches share no history with `main`. Force-push affects only the orphan branch's ref, never rewinds `main`.
+- **Aligned with priority chain**: `local/` was never part of the priority-chain context bundle. Moving it off `main` does not change agent behaviour.
+
+### When to use this pattern (general rule)
+
+For any future high-churn / poorly-compressing artefact: **default to a per-agent orphan branch, not `main`**. Markdown-style memory (low-churn, human-curated) continues to live on `main`.
 
 ---
 

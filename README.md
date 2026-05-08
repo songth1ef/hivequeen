@@ -841,6 +841,7 @@ If you need any of the above, nestwork may not be the right fit — pick a dedic
 - **v2.1** (2026-04-21): SessionStart hook auto-injects context
 - **v2.2** (2026-05-07): Added `workflow/` context layer + `nestwork.config.json` external-directory ingestion contract + universal markdown split rule
 - **v2.3** (2026-05-08): Added §10 nestwork-vs-repo-5-doc boundary (`projects/<name>.md` 5-field convention + `decisions/` for protocol-level ADRs + `workflow/lessons.md` for cross-repo lessons); SessionStart hook now auto-checks upstream protocol version (24h cache, advisory only, never auto-applies)
+- **v2.4** (2026-05-08): Added §12 orphan-branch strategy for high-churn artefacts — `agents/*/*/local/` is now in default `.gitignore`; `agent-history-<host>-<agent-id>` orphan branches hold a single rolling-overwrite snapshot (force-push). Fixes unbounded main-history bloat when `sync_local_history` is enabled (observed mynestwork: 177 MB → 1.6 MB).
 
 Full protocol: [AGENTS.md](AGENTS.md).
 

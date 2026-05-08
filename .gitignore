@@ -3,3 +3,9 @@ __pycache__/
 *.pyo
 .tmp_sync_local_history_test/
 .test-tmp/
+
+# Per-agent local history (~/.claude/history.jsonl, plans/) is high-churn and
+# does not delta-compress well. Backed up via per-agent orphan branches:
+#   agent-history-<host>-<agent-id>
+# See scripts/hooks/snapshot-local-orphan.sh and AGENTS.md §12.
+agents/*/*/local/

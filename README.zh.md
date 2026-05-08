@@ -841,6 +841,7 @@ git remote set-url origin <你的私有 git>
 - **v2.1**（2026-04-21）：SessionStart hook 自动注入上下文
 - **v2.2**（2026-05-07）：新增 `workflow/` 上下文层 + `nestwork.config.json` 外部目录吸收契约 + 通用 markdown 拆分规则
 - **v2.3**（2026-05-08）：新增 §10 nestwork 与 repo 5-doc 边界（`projects/<name>.md` 5 字段建议 + `decisions/` 协议级 ADR + `workflow/lessons.md` 跨 repo 教训）；SessionStart hook 增加上游版本自动检测（24h 缓存，仅提醒，绝不自动应用）
+- **v2.4**（2026-05-08）：新增 §12 高频 artefact 的孤儿分支策略 —— `agents/*/*/local/` 默认 `.gitignore`，由 `agent-history-<host>-<agent-id>` 单 commit 滚动覆盖快照（force-push）。解决启用 `sync_local_history` 后 main 历史无界膨胀（实测 mynestwork 从 177 MB 降到 1.6 MB）。
 
 完整协议规范见 [AGENTS.md](AGENTS.md)。
 

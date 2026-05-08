@@ -2,6 +2,44 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG.zh.md)
 
+## v0.6.0 - 2026-05-08
+
+### Protocol v2.4
+
+Provides an isolated storage path for "high-frequency append + poor delta compression" artefacts (typically `history.jsonl` from `sync_local_history`), avoiding unbounded main-history bloat.
+
+- **AGENTS.md §12 added** — high-churn artefacts go to per-agent orphan branch `agent-history-<host>-<agent-id>`. Each write rebuilds a single parentless commit via `git commit-tree` + `git update-ref` and force-pushes it, replacing the previous snapshot. Branch naming embeds host + agent-id, so each branch has exactly one writer; force-push is collision-free by design.
+- **`agents/*/*/local/` in default `.gitignore`** — main no longer absorbs high-churn artefacts; backup lives entirely on orphan branches.
+- **New `scripts/hooks/snapshot-local-orphan.sh`** — snapshot builder using `GIT_INDEX_FILE` temp index to avoid touching the main working index; only creates a new commit when the tree hash changes; failed force-pushes never block the agent.
+- **`scripts/hooks/sync-local-history.sh` invokes the snapshot script after the python sync** — no configuration change required by users; enabling `sync_local_history` automatically gets the new mechanism.
+- **Cross-machine restore**: `git fetch origin agent-history-<host>-<agent-id>` → `git restore --source=...` in a single command.
+
+### Measured effect
+
+Downstream instance mynestwork bloated to 177 MB after running `sync_local_history` for two weeks (411 `history.jsonl` commits). After `git filter-repo` cleanup + switching to this mechanism: repo down to 1.6 MB (**-99%**), backup fully preserved on 4 orphan branches.
+
+### Added
+
+- `scripts/hooks/snapshot-local-orphan.sh`
+
+### Changed
+
+- `scripts/hooks/sync-local-history.sh` — invokes the snapshot script after the python sync
+- `.gitignore` — adds `agents/*/*/local/`
+
+### Upgrade notes (private instances)
+
+After upgrading to v2.4, newly-written `local/` entries automatically use the orphan-branch path; main stops growing. **Existing main-history bloat must be cleaned manually**, once:
+
+1. `pip install git-filter-repo`
+2. `git filter-repo --path-glob 'agents/*/*/local/*' --invert-paths --refs main --force`
+3. `git push origin main --force`
+4. `git gc --aggressive --prune=now`
+
+Back up `.git` before running destructive operations.
+
+---
+
 ## v0.5.0 - 2026-05-08
 
 ### Protocol v2.3
