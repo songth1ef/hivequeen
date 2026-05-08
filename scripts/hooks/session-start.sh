@@ -40,4 +40,17 @@ emit_file "strategy"      "queen/strategy.md"
 emit_file "shared memory" "shared/memory.md"
 emit_file "agent memory"  "agents/$HOST_ID/$AGENT_ID/memory.md"
 
+# workflow/: portable user-level knowledge (lowest-priority context layer,
+# AGENTS.md §8). Always-relevant across sessions, so injected here rather
+# than left for on-demand Read. Skip _template.md (authoring scaffold, not
+# content).
+if [ -d workflow ]; then
+  for f in workflow/*.md; do
+    [ -f "$f" ] || continue
+    base="$(basename "$f")"
+    [ "$base" = "_template.md" ] && continue
+    emit_file "workflow/${base%.md}" "$f"
+  done
+fi
+
 exit 0
