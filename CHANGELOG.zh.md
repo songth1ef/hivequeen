@@ -14,6 +14,31 @@
 
 ---
 
+## v0.5.0 - 2026-05-08
+
+### Protocol v2.3
+
+新增"nestwork 与 repo 5-doc 边界"以及"上游版本自动检测"，澄清跨 repo 与 repo 内职责，让下游能被动感知协议演进。
+
+- **AGENTS.md §10 新增** —— 明确 nestwork（跨 repo 协调层）与每个 repo 内 5-doc 骨架（`AGENT.md` / `docs/conventions.md` / `docs/domain.md` / `docs/architecture.md` / `docs/lessons.md`）的分工边界。判断标准："换雇主后还在吗" → 在 → repo；不在 → workflow/。
+- **`projects/<name>.md` 5 字段建议**（§10.1）—— `Current Goal` / `Current State` / `Next Action` / `Do Not` / `Last Verified`。建议非强制，模板：`projects/_template.md`。
+- **`decisions/` 协议级 ADR**（§10.2）—— 仅记录关于 nestwork 自身或协议的决策（项目级 ADR 留 repo）。文件命名 `YYYY-MM-DD-<slug>.md`。模板：`decisions/_template.md`，说明：`decisions/README.md`。
+- **`workflow/lessons.md` 跨 repo 教训**（§10.3）—— repo 级 `docs/lessons.md` 走 5-doc；跨 repo 可迁移的教训蒸馏到此。upstream 不发货此文件，按需自建。
+- **AGENTS.md §11 新增** —— SessionStart hook 增加上游版本自动检测：24h 缓存、3 秒超时、网络失败静默跳过、仅在 upstream MAJOR.MINOR 大于 local 时通过 context bundle 提醒；用户始终可控，**绝不自动应用**。
+
+### 新增
+
+- `projects/_template.md` —— 5 字段项目快照模板
+- `decisions/_template.md` —— 协议级 ADR 模板
+- `decisions/README.md` —— 协议级 ADR 范围、命名、状态生命周期说明
+
+### 变更
+
+- `scripts/hooks/session-start.sh` —— 加上游版本检查（advisory only）
+- `scripts/maintenance/update.sh` —— PROTOCOL_FILES 加入 `projects/_template.md` / `decisions/_template.md` / `decisions/README.md`
+
+---
+
 ## v0.4.0 - 2026-05-07
 
 ### Protocol v2.2

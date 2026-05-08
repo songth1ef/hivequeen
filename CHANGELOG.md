@@ -2,6 +2,31 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG.zh.md)
 
+## v0.5.0 - 2026-05-08
+
+### Protocol v2.3
+
+Clarifies the boundary between nestwork (cross-repo coordination layer) and the per-repo 5-doc skeleton, and adds a passive upstream-version check so downstream instances can notice protocol updates without polling.
+
+- **AGENTS.md §10 added** — defines the boundary between nestwork and each repo's own 5-doc skeleton (`AGENT.md` / `docs/conventions.md` / `docs/domain.md` / `docs/architecture.md` / `docs/lessons.md`). Test: "Will this still apply after I change employers?" If yes → nestwork `workflow/`; if no → the repo.
+- **`projects/<name>.md` 5-field convention** (§10.1) — `Current Goal` / `Current State` / `Next Action` / `Do Not` / `Last Verified`. Recommended, not enforced. Template ships at `projects/_template.md`.
+- **`decisions/` for protocol-level ADRs only** (§10.2) — captures decisions about nestwork itself / its protocol. Project-level ADRs stay in the repo. Files named `YYYY-MM-DD-<slug>.md`. Template at `decisions/_template.md`; scope and status lifecycle in `decisions/README.md`.
+- **`workflow/lessons.md` for cross-repo lessons** (§10.3) — repo-level `docs/lessons.md` (5-doc #5) covers project-internal lessons. Lessons that travel across repos go here. Upstream does **not** ship this file; each user creates it as lessons accumulate.
+- **AGENTS.md §11 added** — SessionStart hook performs a 3-second non-blocking check against upstream's `protocol-version`. 24h cache; silent on network failure; advisory message only when upstream MAJOR.MINOR is strictly greater than local. Never auto-applies.
+
+### Added
+
+- `projects/_template.md` — 5-field project snapshot template
+- `decisions/_template.md` — protocol-level ADR template
+- `decisions/README.md` — scope, naming, status lifecycle for protocol ADRs
+
+### Changed
+
+- `scripts/hooks/session-start.sh` — added upstream version check (advisory only)
+- `scripts/maintenance/update.sh` — PROTOCOL_FILES now includes `projects/_template.md` / `decisions/_template.md` / `decisions/README.md`
+
+---
+
 ## v0.4.0 - 2026-05-07
 
 ### Protocol v2.2

@@ -37,6 +37,9 @@ PROTOCOL_FILES=(
   schemas/
   workflow/README.md
   workflow/_template.md
+  projects/_template.md
+  decisions/_template.md
+  decisions/README.md
 )
 
 cd "$NESTWORK_PATH"

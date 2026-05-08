@@ -15,7 +15,7 @@
 
 # NESTWORK BOOTSTRAP
 
-<!-- protocol-version: 2.2 -->
+<!-- protocol-version: 2.3 -->
 
 Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly on every session.
@@ -347,6 +347,86 @@ See `schemas/nestwork.config.schema.json`. Minimum example:
 - Ingestion is **always agent-driven and manually triggered**; never automatic.
 - The config governs the **source side** only. It does not promise anything about what mynestwork does with the artifact afterwards.
 - Upstream `nestwork` provides only the methodology and prompt template for desensitization. Specific blacklists (employer names, project codenames) live in each user's `custom_rules` — never in upstream.
+
+---
+
+## 10. Layer Boundary: Nestwork vs Per-Repo Docs
+
+Each working repository should maintain its own 5-doc skeleton (added in v2.3 to clarify scope):
+
+| File (in repo root or `docs/`) | Purpose |
+|---|---|
+| `AGENT.md` | Per-repo agent behavior directives (entry file pointing to the others) |
+| `docs/conventions.md` | Coding standards: naming, directory layout, component patterns, git rules |
+| `docs/domain.md` | Business description: core concepts, glossary, business rules |
+| `docs/architecture.md` | System architecture: module boundaries, data flow, tech-stack rationale |
+| `docs/lessons.md` | Lessons learned: bugs hit, validated decisions, mistakes not to repeat |
+
+Nestwork is the **cross-repo coordination layer** sitting *above* the per-repo docs. The boundary:
+
+| Layer | Lives in | Scope |
+|---|---|---|
+| **Per-repo 5-doc** | `<repo>/AGENT.md` + `<repo>/docs/*.md` | Project-internal deep knowledge, travels with the repo |
+| **Nestwork `projects/<name>.md`** | this repo | Project **snapshot + collaboration state** (see §10.1), shared across machines |
+| **Nestwork `decisions/`** | this repo | **Protocol-level** ADRs (see §10.2). Project-level ADRs stay in the repo. |
+| **Nestwork `workflow/<topic>.md`** | this repo | Cross-project portable methodology (see §8) |
+| **Nestwork `queen/`** | this repo | Global behavior rules and strategy |
+| **Nestwork `agents/<host>/<id>/`** | this repo | Single-agent private memory |
+
+Rule of thumb: **if it changes when you switch employers, it belongs in the repo's 5-doc; if it survives the switch, it belongs in nestwork's `workflow/`**. State that helps an agent resume work goes in nestwork's `projects/<name>.md`.
+
+### 10.1. `projects/<name>.md` recommended fields
+
+When writing a project status file, the following five fields are recommended (not strictly required — agents may keep additional notes if useful, but should preserve these as the minimum readable snapshot):
+
+```markdown
+## Current Goal
+The single most important goal for this project right now.
+
+## Current State
+What's been done so far; where work is paused.
+
+## Next Action
+The recommended next step (single concrete action, not a plan).
+
+## Do Not
+Things explicitly out of scope, or known traps. Includes blockers if applicable.
+
+## Last Verified
+Date + what was last verified working. So later sessions know how stale the file is.
+```
+
+A reference template ships at `projects/_template.md`.
+
+Deeper project knowledge (architecture, domain, conventions, full ADRs) belongs in the repo's own 5-doc files, not duplicated here.
+
+### 10.2. `decisions/` — protocol-level ADRs only
+
+`decisions/<YYYY-MM-DD>-<slug>.md` is for decisions about **nestwork itself** or its protocol — e.g. "why we don't ship a `runs/` directory", "why projects/<name>.md uses 5 fields not 8". Project-internal decisions belong in that project's `docs/architecture.md` or its own `decisions/` subfolder.
+
+A reference template ships at `decisions/_template.md`.
+
+Reasoning: capturing **why** is the highest-leverage form of memory. ADR format (Context / Decision / Consequence) is industry-standard; nestwork uses it for protocol evolution so future maintainers don't relitigate settled choices.
+
+### 10.3. `workflow/lessons.md` — cross-repo lessons
+
+The repo-level `docs/lessons.md` (5-doc #5) captures lessons specific to that codebase. When a lesson is transferable across repos (e.g. "Git Bash on Windows has no `hostname -s`"), distill it into `workflow/lessons.md` (single file at first; split into `workflow/lessons/<topic>.md` if it exceeds the 200-line limit per §6).
+
+This file is **not shipped by upstream** — each user creates their own as lessons accumulate. `update.sh` does not touch it.
+
+---
+
+## 11. Upstream Protocol Check (session-start, v2.3+)
+
+The SessionStart hook performs a 3-second non-blocking check against upstream `nestwork`'s `AGENTS.md` `protocol-version` marker. If a newer version is detected, an advisory message is appended to the injected context bundle. The agent surfaces this in its session-start orientation and asks the user whether to run `update.sh`.
+
+Implementation contract:
+- Hardcoded upstream URL: `https://raw.githubusercontent.com/songth1ef/nestwork/main/AGENTS.md`
+- Local cache: `.nestwork-upstream-check` (24h TTL) so most session starts skip the network call
+- Network failure / offline / version match → silent skip (never blocks session start)
+- Only **MAJOR.MINOR mismatch where upstream > local** triggers the advisory
+
+User remains in control: the hook only emits an advisory; nothing is auto-applied.
 
 ---
 
